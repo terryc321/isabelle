@@ -245,5 +245,22 @@ lemma reverse_reverse : "reverse (reverse xs) = xs"
 (*
 Exercise 2.5. Define a recursive function sum :: nat \<Rightarrow> nat such that sum n
 = 0 + ... + n and prove sum n = n \<^emph> (n + 1) div 2.
-
 *)
+
+fun sum :: " nat \<Rightarrow> nat " where
+"sum 0 = 0 " |
+"sum (Suc n) = (Suc n) + sum n " 
+
+value "sum 0"
+value "sum 1"
+value "sum 2"
+value "sum 10"
+
+lemma sum_n : "sum n = n * (n + 1) div 2"
+  apply(induction n)
+   apply(auto)
+  done
+
+
+
+
