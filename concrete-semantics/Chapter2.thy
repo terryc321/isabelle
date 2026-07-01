@@ -123,12 +123,19 @@ value "double2 0"
 value "double2 2"
 value "double2 3" 
 
+(*
 lemma add_m_suc_m : "Suc (add m m) = add m (Suc m) "
   apply(induction m)
   apply(simp)
   apply(simp add: add_m_suc)
   done
- 
+ *)
+
+lemma add_m_suc_n : "Suc (add m n) = add m (Suc n) "
+  apply(induction m)
+  apply(simp)
+  apply(simp add: add_m_suc)
+  done
 
 lemma double2_m_add_m_m: "double2 m = add m m"
   apply(induction m)
@@ -383,12 +390,64 @@ itadd (Suc m) n = itadd . . ..
 Prove itadd m n = add m n.
 *)
 
+fun itadd :: " nat  \<Rightarrow> nat  \<Rightarrow> nat " where
+"itadd 0 n = n" |
+"itadd (Suc m) n = itadd m (Suc n)" 
 
+(** this is the target to prove **)
+lemma itadd_add : "itadd m n = add m n"
+  apply(induction m arbitrary: n)
+  apply(simp add: add_m_suc_n)
+  apply(simp add: add_m_suc_n)
+  done
+
+(** we use arbitrary:n because n is used as the accumulator in a tail recursive 
+function , if itadd was not tail recursive its not needed - i think
+**)
+
+(*
+Exercise 2.10. Define a 
+datatype tree0 of binary tree skeletons which do not
+store any information, neither in the inner nodes nor in the leaves. 
+*)
+
+
+(*
+Define a
+function nodes :: tree0 \<Rightarrow> nat that counts the number of all nodes (inner
+nodes and leaves) in such a tree. 
+
+Consider the following recursive function:
+fun explode :: "nat \<Rightarrow> tree0 \<Rightarrow> tree0" where
+"explode 0 t = t" |
+"explode (Suc n) t = explode n (Node t t)"
+
+Find an equation expressing the size of a tree after exploding it (nodes
+(explode n t)) as a function of nodes t and n. 
+Prove your equation. 
+
+You
+may use the usual arithmetic operators, including the exponentiation operator “^”.
+ For example, 2 ^ 2 = 4.
+Hint: simplifying with the list of theorems algebra_simps takes care of
+common algebraic properties of the arithmetic operators.
+*)
 
 
 
 (*
-"thm map.simps"
-thm list.inject
+Exercise 2.11. Define arithmetic expressions in one variable over integers
+(type int) as a data type:
+datatype exp = Var | Const int | Add exp exp | Mult exp exp
+Define a function eval :: exp \<Rightarrow> int \<Rightarrow> int such that eval e x evaluates e at
+the value x.
+A polynomial can be represented as a list of coefficients, starting with the
+constant. For example, [4, 2, − 1, 3] represents the polynomial 4+2x−x
+2+3x3
+.
+Define a function evalp :: int list \<Rightarrow> int \<Rightarrow> int that evaluates a polynomial at
+the given value. Define a function coeffs :: exp \<Rightarrow> int list that transforms an
+expression into a polynomial. This may require auxiliary functions. Prove that
+coeffs preserves the value of the expression: evalp (coeffs e) x = eval e x.
+Hint: consider the hint in Exercise 2.10.
 *)
-
