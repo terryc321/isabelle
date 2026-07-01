@@ -262,5 +262,133 @@ lemma sum_n : "sum n = n * (n + 1) div 2"
   done
 
 
+(*
+Exercise 2.6. Starting from the type 'a tree defined in the text, define a
+function contents that collects all values in a tree in a list,
+in any order, without removing duplicates. 
 
+contents :: 'a tree \<Rightarrow> 'a list 
+
+Then define a function treesum that sums up all values in a tree of natural 
+numbers and
+
+treesum :: nat tree \<Rightarrow> nat
+
+prove treesum t = listsum (contents t).
+*)
+
+
+datatype 'a tree = Tip | Node " 'a tree" 'a " 'a tree"
+
+fun contents :: " 'a tree \<Rightarrow> 'a list " where
+"contents Tip = [] " |
+"contents (Node left x right) = contents left @ [x] @ contents right" 
+
+(* we can read contents of 1 - 2 - 3 tree *)
+value "contents (Node (Node Tip 1 Tip) 2 (Node Tip 3 Tip)) :: int list"
+
+fun treesum :: " nat tree \<Rightarrow> nat " where
+"treesum Tip = 0 " |
+"treesum (Node left x right) = treesum left + x + treesum right" 
+
+fun listsum :: " nat list \<Rightarrow> nat " where
+"listsum [] = 0 " |
+"listsum (h # t) =  h + listsum t" 
+
+lemma listsum_dist : "listsum (x @ y) = (listsum x) + (listsum y)"
+  apply(induction x)
+   apply(auto)
+  done
+
+lemma treesum_listsum : "treesum t = listsum (contents t)"
+  apply(induction t)
+   apply(auto)
+  apply(simp add: listsum_dist)
+  done
+
+
+(*
+Exercise 2.7. 
+Define a new type 'a tree2 of binary trees where values are
+also stored in the leaves of the tree. 
+
+Also reformulate the mirror function accordingly. 
+
+Define two functions 
+
+pre_order  :: 'a tree2 \<Rightarrow> 'a list  
+post_order :: 'a tree2 \<Rightarrow> 'a list 
+
+that traverse a tree and collect all stored values in the respective
+order in a list. 
+
+Prove pre_order (mirror t) = rev (post_order t).
+*)
+
+datatype 'a tree2 = Tip2 'a | Node2 " 'a tree2" 'a " 'a tree2"
+
+fun mirror :: "'a tree2 \<Rightarrow> 'a tree2" where
+"mirror (Tip2 x) = (Tip2 x)" |
+"mirror (Node2 l a r ) = Node2 (mirror r ) a (mirror l)"
+
+fun pre_order :: "'a tree2 \<Rightarrow> 'a list" where
+"pre_order (Tip2 x) = [x]" |
+"pre_order (Node2 l a r ) = [a] @ (pre_order l ) @ (pre_order r)"
+
+fun post_order :: "'a tree2 \<Rightarrow> 'a list" where
+"post_order (Tip2 x) = [x]" |
+"post_order (Node2 l a r ) = (post_order l ) @ (post_order r) @ [a]"
+
+lemma pre_post_order : "pre_order (mirror t) = rev (post_order t)"
+  apply(induction t)
+  apply(auto)
+  done
+
+
+(*
+Exercise 2.8. Define a function 
+
+intersperse :: 'a \<Rightarrow> 'a list \<Rightarrow> 'a list 
+
+such that intersperse a [x 1, ..., x n] = [x 1, a, x 2, a, ..., a, x n]. 
+
+Now prove 
+
+map f (intersperse a xs) = intersperse (f a) (map f xs).
+*)
+
+fun intersperse :: "'a  \<Rightarrow> 'a list  \<Rightarrow> 'a list " where
+"intersperse a [] = []" |
+"intersperse a [e] = [e]" |
+"intersperse a (h # t) = h # (a # (intersperse a t))"
+
+value "intersperse 9 [1,2,3,4,5] :: int list"
+
+lemma intersperse_map : "map f (intersperse a xs) = intersperse (f a) (map f xs)"
+  apply(induction xs rule: intersperse.induct)
+  apply(auto) 
+  done
+
+
+(*
+Exercise 2.9. Write a tail-recursive variant of the add function on nat:
+
+itadd :: nat \<Rightarrow> nat \<Rightarrow> nat 
+
+Tail-recursive means that in the recursive case, itadd needs to call
+itself directly: 
+
+itadd (Suc m) n = itadd . . ..
+
+Prove itadd m n = add m n.
+*)
+
+
+
+
+
+(*
+"thm map.simps"
+thm list.inject
+*)
 
