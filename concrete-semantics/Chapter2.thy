@@ -188,9 +188,12 @@ lemma count_length2 : "count x xs \<le> length xs"
 
 (*
 Exercise 2.4. Define a recursive function snoc :: 'a list \<Rightarrow> 'a \<Rightarrow> 'a list
-that appends an element to the end of a list. With the help of snoc define
-a recursive function reverse :: 'a list \<Rightarrow> 'a list that reverses a list. Prove
-reverse (reverse xs) = xs.
+that appends an element to the end of a list. 
+
+With the help of snoc define a recursive function reverse
+reverse :: 'a list \<Rightarrow> 'a list that reverses a list. 
+
+Prove reverse (reverse xs) = xs.
 *)
 
 value "[] :: int list"
@@ -221,73 +224,22 @@ lemma snoc_append: "snoc xs a = append xs [a]"
    apply(auto)
   done
 
-lemma snoc_append2: "reverse (snoc xs a) = reverse (append xs [a])"
-  apply(simp add: snoc_append)
-  done
-
-
-lemma reverse_reverse : "reverse (reverse xs) = xs" 
-  apply(induction xs)
-   apply(auto) 
-  apply(simp add: snoc_append)
-  oops
-
-
-(*
-  apply(subst snoc_append2)
-  apply(simp add: reverse_cons)
-  apply(auto)
-  oops
-*)
-
-
-
-
-
-
-
-lemma reverse_cons: "reverse (a # xs) = (reverse xs) @ [a]"
-  apply(induction xs)
-   apply(simp)
-  apply(auto)
+(* ok that surprised me it worked*)
+lemma reverse_append2: "reverse (append x y) = append (reverse y) (reverse x) " 
+  apply(induction x)
+   apply(auto)
   apply(simp add:snoc_append)
   done
 
-(*  reverse (snoc (reverse xs) a) = a # xs *)
-lemma reverse_snoc: "reverse (snoc xs a) = a # xs" (* false*)
-  oops
-
-(* reverse (reverse xs @ [a]) = a # xs *)
-lemma reverse_app: "reverse (x # xs) = xs @ [x] " 
-  apply(induction xs))
-  oops
-
-(*snoc (reverse xs) a *)
-lemma snoc_rev: "snoc (reverse xs) a = (reverse xs) @ [a] " 
+(**** this is the target to prove ****)
+lemma reverse_reverse : "reverse (reverse xs) = xs" 
   apply(induction xs)
-   apply(auto)
-  apply(simp add: snoc.simps)
-  apply assumption
-  oops
+   apply(simp)
+  apply(simp add:snoc_append)
+  apply(simp add:reverse_append2)
+  done 
 
-(* reverse x @ y =  *)
-
-value "reverse [1,2,3] @ [4,5,6] :: int list" 
-
-(* reverse (reverse xs @ [a]) = a # xs *)
-lemma reverse_app: "reverse (x @ [y]) = [y] @ x " 
-  apply(induction x)
-   apply(auto)
-   
-  oops
-
-
-
-
-
-
-
-
+(* that was quite tough even though its an identical classic rev rev xs = xs*)
 
 
 (*
