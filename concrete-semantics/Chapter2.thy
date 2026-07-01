@@ -409,15 +409,24 @@ function , if itadd was not tail recursive its not needed - i think
 Exercise 2.10. Define a 
 datatype tree0 of binary tree skeletons which do not
 store any information, neither in the inner nodes nor in the leaves. 
+-- binary skeleton no 
 *)
+
+datatype tree0 = Tip0 | Node0 "tree0" "tree0"
+
+(*
+Define a function 
+nodes :: tree0 \<Rightarrow> nat that counts the number of all nodes (inner
+nodes and leaves) in such a tree. 
+*)
+fun nodes :: " tree0 \<Rightarrow> nat " where
+"nodes Tip0 = 1 " |
+"nodes (Node0 left right) = 1 + (nodes left) + (nodes right)" 
 
 
 (*
-Define a
-function nodes :: tree0 \<Rightarrow> nat that counts the number of all nodes (inner
-nodes and leaves) in such a tree. 
-
 Consider the following recursive function:
+
 fun explode :: "nat \<Rightarrow> tree0 \<Rightarrow> tree0" where
 "explode 0 t = t" |
 "explode (Suc n) t = explode n (Node t t)"
@@ -432,6 +441,38 @@ may use the usual arithmetic operators, including the exponentiation operator â€
 Hint: simplifying with the list of theorems algebra_simps takes care of
 common algebraic properties of the arithmetic operators.
 *)
+
+fun explode :: "nat \<Rightarrow> tree0 \<Rightarrow> tree0" where
+"explode 0 t = t" |
+"explode (Suc n) t = explode n (Node0 t t)"
+
+value "nodes (explode 1 Tip0)"  (* = 3*)
+value "nodes (explode 2 Tip0)"  (* = 2n+1 where n is (explode (2-1) Tip) == 7*)
+value "nodes (explode 3 Tip0)"  (* = 2n+1 where n is 7 (explode (3-1) Tip) == 15*)
+value "nodes (explode 4 Tip0)"  (* = 2n+1 where n is 15 (explode (4-1) Tip) == 31*)
+
+fun nodexr :: "nat \<Rightarrow> nat \<Rightarrow> nat \<Rightarrow> nat" where
+"nodexr nt 0 r = r " |
+"nodexr nt (Suc n) r = nodexr nt n (2*r + 1)"
+
+fun nodex :: "nat \<Rightarrow> nat \<Rightarrow> nat" where
+"nodex nt n = nodexr nt n 1"
+
+value "nodex (nodes Tip0) 1" 
+value "nodex (nodes Tip0) 2"
+value "nodex (nodes Tip0) 3"
+value "nodex (nodes Tip0) 4"
+
+lemma nodex_rel : "nodes (explode n t) = nodex (nodes t) n"
+  apply(induction t arbitrary: n t)
+   apply(auto)
+  oops
+
+
+(*** we left off here ***)
+ 
+   
+   
 
 
 
