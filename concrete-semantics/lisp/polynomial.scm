@@ -1,10 +1,4 @@
 
-
-(defpackage :poly
-  (:use :cl))
-
-(in-package :poly)
-
 #|
 
 Define a function eval :: exp ⇒ int ⇒ int such that eval e x evaluates e at
@@ -36,16 +30,21 @@ fun evalp :: "int list ⇒ int ⇒ int" where
 "evalp (h # t) x = 0" 
 |#
 
+;; (use-modules (ice-9 match))
+
 ;; eval reserved word - use meval
-(defun meval (expr x)
+(define (meval expr x)
   (cond
-    ((eq expr 'Var) x)
-    ((and (consp expr) (eq (car expr) 'add))
-     (destructuring-bind (f e1 e2) expr  
+    ((eq? expr 'var) x)
+    ((and (pair? expr) (eq? (car expr) 'add))
+     (let ((e1 (car (cdr expr)))
+	   (e2 (car (cdr (cdr expr)))))
        (+ (meval e1 x) (meval e2 x))))
-    ((and (consp expr) (eq (car expr) 'mult))
-     (destructuring-bind (f e1 e2) expr  
+    ((and (pair? expr) (eq? (car expr) 'mult))
+     (let ((e1 (car (cdr expr)))
+	   (e2 (car (cdr (cdr expr)))))
        (* (meval e1 x) (meval e2 x))))))
+
 
 (meval 'var 3) ;; 3
 (meval '(add var var) 3) ;; 3 + 3
@@ -54,21 +53,21 @@ fun evalp :: "int list ⇒ int ⇒ int" where
 
 ;; given a list - translate into polynomial expression
 
-(defun mlist3 (x pow)
+(define (mlist3 x pow)
   (cond
     ((< pow 1) `(const ,x))
-    (t `(mult (const ,x) (pow Var ,pow)))))
+    (else `(mult (const ,x) (pow var ,pow)))))
 
-(defun mlist2 (xs pow)
+(define (mlist2 xs pow)
   (cond
-    ((null xs) '())
-    (t (let ((x (car xs))
-	     (tt (cdr xs)))
+    ((null? xs) '())
+    (else (let ((x (car xs))
+		(tt (cdr xs)))
 	 (cond
-	   ((null tt) (mlist3 x pow))
-	   (t `(add ,(mlist3 x pow) ,(mlist2 tt (+ pow 1)))))))))
+	  ((null? tt) (mlist3 x pow))
+	  (else `(add ,(mlist3 x pow) ,(mlist2 tt (+ pow 1)))))))))
     
-(defun mlist (xs)
+(define (mlist xs)
   (mlist2 xs 0))
 
 (mlist '(0))
@@ -77,18 +76,21 @@ fun evalp :: "int list ⇒ int ⇒ int" where
 (mlist '(1 2 3))
 
 ;; pre_order on tree xs -- cps 
-(defun coeffs (xs k)
+(define (coeffs expr)
   (cond
-    ((null xs) '())
-    ((eq xs 'var) '())
-    ((eq (car xs) 'const) (list (car (cdr xs))))
-    ((eq (car xs) 'add) (append (coeffs (car (cdr xs)))
-				(coeffs (car (cdr (cdr xs))))))
-    ((eq (car xs) 'mul) (append (coeffs (car (cdr xs)))
-				(coeffs (car (cdr (cdr xs))))))))
-
-
- 
+    ((null? expr) '())
+    ((eq? expr 'var) '())
+    ((eq? (car expr) 'const) (let ((i (car (cdr expr)))) (list i)))
+    ((eq? (car expr) 'add) (append (coeffs (car (cdr expr)))
+				   (coeffs (car (cdr (cdr expr))))))
+    ((eq? (car expr) 'mult) (append (coeffs (car (cdr expr)))
+				    (coeffs (car (cdr (cdr expr))))))
+    ((eq? (car expr) 'pow) '())))
+     
+(coeffs 'var)
+(coeffs '(const 3))
+(coeffs '(add var var))
+(coeffs '(add (const 3) (mult (const 4) (pow var 1))))
 (coeffs (mlist '(0)))
 (coeffs (mlist '(1)))
 (coeffs (mlist '(1 1)))

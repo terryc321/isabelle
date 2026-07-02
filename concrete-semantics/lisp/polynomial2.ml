@@ -8,79 +8,22 @@ type expr =
   | Mult of expr * expr
   | VarPow of int
 
-(* let e0 = Mult Var Var *)
-let e1 = Var
-let e2 = Const 3
-let e3 = Add (Var,Var)
 
-let rec eval (e : expr) (x : int) : int =
-  match e with
-  | Var -> x
-  | Const i -> i
-  | Add (e1, e2) -> (eval e1 x) + (eval e2 x)
-  | Mult (e1, e2) -> (eval e1 x) * (eval e2 x)
-
-let ev1 = eval e1 3
-let ev2 = eval e2 3
-let ev3 = eval e3 3
-
-
-
-(* simplifier
-   Var
-   Const i
-   multiply two constants - get a constant
-   multiply 0 by anything get 0 (Const 0)
-
-   add 0 b = b
-   add a 0 = a 
-   *)
-let rec simp (e : expr) =
-  match e with
-  | Var -> Var 
-  | Const i -> Const i
-  | Mult (Const a , Const b) -> Const (a * b)
-  | Add  (Const a , Const b) -> Const (a + b)
-  | Mult (Const 0 , b) -> Const 0
-  | Mult (a , Const 0) -> Const 0
-  | Mult (Const 1 , b) -> simp b
-  | Mult (e1,e2) -> Mult (simp e1,simp e2)
-  | Add (e1, e2) -> Add (simp e1 ,simp e2)
-  
-let rec keep_simp (e:expr) =
-  let e1 = simp e in
-  let e2 = simp e1 in
-  if e1 = e2 then e2 else keep_simp e2
-  
+let rec mlist2 (xs : int list) (pow : int) : expr =
+  match xs with
+  | [] -> Const 0 (*dummy value*)
+  | [x] -> mlist3 x pow
+  | (x :: tt) -> let v =  mlist3 x pow
+                 and v2 = mlist2 tt (pow+1) in   
+                    Add(v,v2)
+  and mlist3 (x : int) (pow : int) : expr =
+    if pow < 1 then (Const x)
+    else Mult(Const x, VarPow pow)
+    
+let mlist (xs : int list) : expr = mlist2 xs 0 
 
 
 (*
-  [4;2;-1;3] translates to 4 + 2x + -1x^2 + 3x^3 lets call this evalph 
-  evalp simply passes to eval , offloads building expression to evalph
-  *)
-
-let rec evalph2 (xs : int list) (e : expr) (acc : expr)  =
-  match xs with
-  | [] -> acc
-  | (h :: t) -> evalph2 t (Mult (e, Var)) (Add (Mult(Const h,e),acc))
-
-let evalph (xs : int list) = evalph2 xs (Const 1) (Const 0)
-
-let evalp (xs:int list) (x:int) : int =  eval (evalph xs) x
-
-let ev4 = evalph [4;2;-1;3]
-
-(* val ev4 : expr =
-  Add (Mult (Const 3, Mult (Mult (Mult (Const 1, Var), Var), Var)),
-   Add (Mult (Const (-1), Mult (Mult (Const 1, Var), Var)),
-    Add (Mult (Const 2, Mult (Const 1, Var)),
-   Add (Mult (Const 4, Const 1), Const 0))))
-
-should we simplify it - if so how ?
-   *)
-
-let ev5 = simp ev4
-
 let rec mlist2 (xs : int list) (pow : int) : expr option =
   match xs with
   | [] -> None
@@ -90,12 +33,12 @@ let rec mlist2 (xs : int list) (pow : int) : expr option =
                     match v2 with
 		    | Some v3 -> Some (Add(v,v3))
 		    | _ -> None
-  and mlist3 (x : expr) (pow : int) : expr =
+  and mlist3 (x : int) (pow : int) : expr =
     if pow < 1 then (Const x)
     else Mult(Const x, VarPow pow)
-  
-let mlist (xs : int list) : expr = mlist2 xs 0 
-
+    
+let mlist (xs : int list) : expr option = mlist2 xs 0 
+  *)
 
 (*
 Define a function 
@@ -113,7 +56,7 @@ evalp (coeffs e) x = eval e x.
   coeffs Var -> [0,1,0,0,0,0,0] ???
   coeffs Const a -> [a,0,0,0,0,0,0] ??? 
   coeffs 
-*)
+
 
 
 (* this is going to be painful *)  
@@ -140,6 +83,8 @@ let ev8 = let v = [1;0] in let e = evalph v  in v = coeffs e
 let ev9 = let v = [0;0;0] in let e = evalph v in v = coeffs e
 let ev10 = let v = [-1] in let e = evalph v in (e,v,v = coeffs e)
 let ev11 = let v = [-1;-2;-3;-4] in let e = evalph v in v = coeffs e
+  *)
+
 
 
 
