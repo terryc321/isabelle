@@ -1,0 +1,59 @@
+
+(defpackage :poly
+  (:use :cl))
+
+(in-package :poly)
+
+#|
+
+Define a function eval :: exp ⇒ int ⇒ int such that eval e x evaluates e at
+the value x.
+A polynomial can be represented as a list of coefficients, starting with the
+constant. For example, [4, 2, − 1, 3] represents the polynomial 4+2x−x^2+3*x^3
+*)
+
+fun eval :: "exp ⇒ int ⇒ int" where
+"eval Var x = x" |
+"eval (Const i) x = i" |
+"eval (Add e1 e2) x = (eval e1 x) + (eval e2 x)" |
+"eval (Mult e1 e2) x = (eval e1 x) * (eval e2 x)" 
+
+value "eval Var 3" 
+value "eval (Const 5) 3"
+value "eval (Add Var Var) 3"
+
+(*
+Define a function evalp :: int list ⇒ int ⇒ int that evaluates a polynomial at
+the given value. 
+*)
+fun evalph :: "int list ⇒ int ⇒ int ⇒ int" where
+"evalph [] x n = 0" |
+"evalph (h # t) x n = 0"
+
+fun evalp :: "int list ⇒ int ⇒ int" where
+"evalp [] x = 0" |
+"evalp (h # t) x = 0" 
+|#
+
+;; eval reserved word - use meval
+(defun meval (expr x)
+  (cond
+    ((eq expr 'Var) x)
+    ((and (consp expr) (eq (car expr) 'add))
+     (destructuring-bind (f e1 e2) expr  
+       (+ (meval e1 x) (meval e2 x))))
+    ((and (consp expr) (eq (car expr) 'mult))
+     (destructuring-bind (f e1 e2) expr  
+       (* (meval e1 x) (meval e2 x))))))
+
+(meval 'var 3) ;; 3
+(meval '(add var var) 3) ;; 3 + 3
+(meval '(add (mult var var) var) 5) ;; 5*5 + 5
+
+
+    
+
+
+    
+					   
+

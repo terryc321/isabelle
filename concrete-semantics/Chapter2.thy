@@ -451,28 +451,47 @@ value "nodes (explode 2 Tip0)"  (* = 2n+1 where n is (explode (2-1) Tip) == 7*)
 value "nodes (explode 3 Tip0)"  (* = 2n+1 where n is 7 (explode (3-1) Tip) == 15*)
 value "nodes (explode 4 Tip0)"  (* = 2n+1 where n is 15 (explode (4-1) Tip) == 31*)
 
-fun nodexr :: "nat \<Rightarrow> nat \<Rightarrow> nat \<Rightarrow> nat" where
-"nodexr nt 0 r = r " |
-"nodexr nt (Suc n) r = nodexr nt n (2*r + 1)"
-
 fun nodex :: "nat \<Rightarrow> nat \<Rightarrow> nat" where
-"nodex nt n = nodexr nt n 1"
+"nodex nt 0 = nt" |
+"nodex nt (Suc n) = 2*(nodex nt n) + 1"
 
-value "nodex (nodes Tip0) 1" 
-value "nodex (nodes Tip0) 2"
-value "nodex (nodes Tip0) 3"
-value "nodex (nodes Tip0) 4"
+value "nodex (nodes Tip0) 1 = nodes (explode 1 Tip0)" 
+value "nodex (nodes Tip0) 2 = nodes (explode 2 Tip0)"
+value "nodex (nodes Tip0) 3 = nodes (explode 3 Tip0)"
+value "nodex (nodes Tip0) 4 = nodes (explode 4 Tip0)"
+
+lemma nodex_step: "nodex (2 * nt + 1) n = 2 * (nodex nt n) + 1"
+  apply(induction n arbitrary: t)
+   apply(auto)
+  done
+
+lemma nodex_step2: "nodex (Suc (m + m)) n = Suc (2 * nodex m n)"
+  apply(induction n)
+   apply(auto)
+  done
 
 lemma nodex_rel : "nodes (explode n t) = nodex (nodes t) n"
-  apply(induction t arbitrary: n t)
-   apply(auto)
-  oops
+  apply(induction n arbitrary: t)
+  apply(auto)
+  apply(auto simp add:nodex_step2 algebra_simps)
+  done
 
+(*** we proved it
+after auto we were left with 
 
-(*** we left off here ***)
- 
-   
-   
+ \<And>n t. (\<And>t. nodes (explode n t) = nodex (nodes t) n) 
+\<Longrightarrow> nodex (Suc (nodes t + nodes t)) n = Suc (2 * nodex (nodes t) n)
+
+so we made whole right hand side another lemma  
+
+nodex (Suc (nodes t + nodes t)) n = Suc (2 * nodex (nodes t) n)
+
+if substitute m for nodes t
+
+nodex (Suc (m + m)) n = Suc (2 * nodex m n)
+
+this is the lemma we needed to prove
+***)
 
 
 
@@ -480,14 +499,40 @@ lemma nodex_rel : "nodes (explode n t) = nodex (nodes t) n"
 Exercise 2.11. Define arithmetic expressions in one variable over integers
 (type int) as a data type:
 datatype exp = Var | Const int | Add exp exp | Mult exp exp
+*)
+
+datatype exp = Var | Const int | Add exp exp | Mult exp exp
+
+(*
 Define a function eval :: exp \<Rightarrow> int \<Rightarrow> int such that eval e x evaluates e at
 the value x.
 A polynomial can be represented as a list of coefficients, starting with the
-constant. For example, [4, 2, − 1, 3] represents the polynomial 4+2x−x
-2+3x3
-.
+constant. For example, [4, 2, − 1, 3] represents the polynomial 4+2x−x^2+3*x^3
+*)
+
+fun eval :: "exp \<Rightarrow> int \<Rightarrow> int" where
+"eval Var x = x" |
+"eval (Const i) x = i" |
+"eval (Add e1 e2) x = (eval e1 x) + (eval e2 x)" |
+"eval (Mult e1 e2) x = (eval e1 x) * (eval e2 x)" 
+
+value "eval Var 3" 
+value "eval (Const 5) 3"
+value "eval (Add Var Var) 3"
+
+
+(*
 Define a function evalp :: int list \<Rightarrow> int \<Rightarrow> int that evaluates a polynomial at
-the given value. Define a function coeffs :: exp \<Rightarrow> int list that transforms an
+the given value. 
+*)
+fun evalp :: "int list \<Rightarrow> int \<Rightarrow> int" where
+"evalp [] x = 0" |
+"evalp (h # t) x = 0" 
+
+
+
+(*
+Define a function coeffs :: exp \<Rightarrow> int list that transforms an
 expression into a polynomial. This may require auxiliary functions. Prove that
 coeffs preserves the value of the expression: evalp (coeffs e) x = eval e x.
 Hint: consider the hint in Exercise 2.10.

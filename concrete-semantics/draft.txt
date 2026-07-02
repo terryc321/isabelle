@@ -1,0 +1,100 @@
+  apply(simp algebra_simps)
+
+  apply assumption
+
+apply(induction)
+apply(auto)  
+
+  
+
+   apply(auto)
+  oops
+
+===================================================
+
+many dead ends , how are we to think about proving ?
+
+
+(*
+dead end - we were not using nt in defintion ?!? 
+fun nodexr :: "nat ⇒ nat ⇒ nat ⇒ nat" where
+"nodexr nt 0 r = r " |
+"nodexr nt (Suc n) r = nodexr nt n (2*r + 1)"
+
+fun nodex :: "nat ⇒ nat ⇒ nat" where
+"nodex nt n = nodexr nt n 1"
+*)
+
+--------------------------------------------------
+
+fun itadd2 :: " nat  ⇒ nat  ⇒ nat " where
+"itadd2 n 0 = n" |
+"itadd2 0 m = m" |
+"itadd2 (Suc n) m = itadd2 n (Suc m)" 
+
+(* again *)
+
+value "itadd 2 3" 
+value "itadd 3 0"
+
+value "itadd2 2 3" 
+value "itadd2 3 0"
+
+
+(** this is the target to prove **)
+lemma itadd_add : "itadd m n = add m n"
+  apply(induction n rule: itadd.induct)
+   apply(auto)
+   apply(simp add:add_m_0)
+     apply(subst itadd.simps)
+  apply(auto)
+   apply(simp add:add_m_0)
+
+   apply(simp add:itadd_m_0)
+   apply(auto) 
+
+  apply (simp add: add_m_suc_n [symmetric])
+
+  oops
+
+-------------------------------------------
+
+(*
+lemma itadd_suc3 : "itadd m n = itadd n m"
+  apply(induction m)
+   apply(auto)
+  apply(subst itadd.simps)
+   apply(auto) 
+  oops
+
+
+lemma itadd_suc1 : "itadd m (Suc n) = itadd (Suc m) n"
+  apply(induction n)
+   apply(auto) 
+  done
+
+lemma itadd_suc2 : "itadd m n = itadd n m"
+  apply(induction n)
+   apply(auto) 
+  oops
+
+
+lemma itadd_m_suc0 : "itadd m (Suc 0) = Suc m"
+  apply(subst itadd_suc1)
+  apply(auto)
+  apply(induction m)
+
+  oops
+*)
+(*  apply(simp add: itadd_suc [symmetric]) *)
+
+  
+
+
+lemma itadd_m_0 : "itadd m 0 = m"
+  apply(induction m)
+   apply auto
+  oops
+
+
+--------------------------------------------------
