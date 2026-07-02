@@ -1,4 +1,44 @@
-  apply(simp algebra_simps)
+
+
+(*
+"simp (Mult e1 e2) = (
+  case (simp e1, simp e2) of
+   (Const 0, _) ⇒ Const 0
+  | (_, Const 0) ⇒ Const 0
+  | (Const a, Const b) ⇒ Const (a * b)
+  | (s1, s2) ⇒ Mult s1 s2
+)" 
+
+
+"simp (Add e1 e2) = (
+  case (simp e1, simp e2) of
+   (Const 0, b) ⇒ b
+  | (a, Const 0) ⇒ a
+  | (Const a, Const b) ⇒ Const (a + b)
+  | (s1, s2) ⇒ Add s1 s2
+)" |
+"simp (Mult e1 e2) = (
+  case (simp e1, simp e2) of
+   (Const 0, _) ⇒ Const 0
+  | (_, Const 0) ⇒ Const 0
+  | (Const a, Const b) ⇒ Const (a * b)
+  | (s1, s2) ⇒ Mult s1 s2
+)" 
+"simp (Mult (Const 0) b) = Const 0" |
+"simp (Mult a (Const 0)) = Const 0" |
+"simp (Mult (Const 1) b) = simp b" | 
+*)
+
+
+(*
+let rec keep_simp (e:expr) =
+  let e1 = simp e in
+  let e2 = simp e1 in
+  if e1 = e2 then e2 else keep_simp e2
+  *)
+
+=================================================
+apply(simp algebra_simps)
 
   apply assumption
 
