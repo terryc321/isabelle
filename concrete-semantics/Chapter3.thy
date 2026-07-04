@@ -323,17 +323,6 @@ proof -
     (* print_facts *)
 *)
  
-    
-    
-  
-  
-   
-
-  
-  
-  
-
-
 lemma optimal_2 : " optimal (asimp_const a) "
 proof (induction a)
   case (N x)
@@ -394,9 +383,153 @@ qed
 qed
 *)
 
+(*
+Exercise 3.2. In this exercise we verify constant folding for aexp where we
+sum up all constants, even if they are not next to each other. 
+
+For example, Plus (N 1) (Plus (V x ) (N 2)) becomes Plus (V x ) (N 3).
+
+This goes beyond asimp.
+
+Define a function full_asimp :: aexp \<Rightarrow> aexp that sums up all constants and
+prove its correctness: aval (full_asimp a) s = aval a s.
+*)
+
+(* 
+full_asimp has to somehow traverse the expression pull out all constants N n ...s 
+sum them all up , all whilst being purely functional 
+*)
+fun full_asimp :: "aexp \<Rightarrow> aexp" where
+"asimp_const (N n)  = N n" |
+"asimp_const (V x ) = V x" |
+"asimp_const (Plus a1 a2 ) =
+(case (full_asimp a1, full_asimp a2 ) of
+      (N n1 , N n2 ) \<Rightarrow> N (n1 + n2) |
+      (b1,b2 )       \<Rightarrow> Plus b1 b2 )"
 
 
- 
+(* todo - bypassed exercises 3.1 .... 3.9 completely *)
+
+(* stack machine and compilation cheat by using underspecified hd2 and tl2 *)
+
+(*
+fun hd2 :: "'a list \<Rightarrow> 'a" where 
+"hd2 xs = hd (tl xs)" 
+
+fun tl2 :: "'a list \<Rightarrow> 'a list" where
+"tl2 xs = tl (tl xs)" 
+*)
+
+definition hd2 :: "'a list \<Rightarrow> 'a" where 
+"hd2 xs \<equiv> hd (tl xs)" 
+
+definition tl2 :: "'a list \<Rightarrow> 'a list" where
+"tl2 xs \<equiv> tl (tl xs)" 
+
+(* value "hd2 [] :: int" -- not defined ?   *)
+(* value "hd2 [1] :: int"  -- not defined ? *)
+value "hd2 [1,2] :: int"
+
+(* 3.3 Stack Machine and Compilation *)
+
+datatype instr = LOADI val | LOAD vname | ADD
+type_synonym stack = "val list"
+
+fun exec1 :: "instr \<Rightarrow> state \<Rightarrow> stack \<Rightarrow> stack" where
+"exec1 (LOADI n) _ stk = n # stk" |
+"exec1 (LOAD x ) s stk = s(x ) # stk" |
+"exec1 ADD _ stk = (hd2 stk + hd stk ) # tl2 stk"
+
+fun exec :: "instr list \<Rightarrow> state \<Rightarrow> stack \<Rightarrow> stack" where
+"exec [] _ stk = stk" |
+"exec (i #is) s stk = exec is s (exec1 i s stk )"
+
+fun comp :: "aexp \<Rightarrow> instr list" where
+"comp (N n) = [LOADI n]" |
+"comp (V x ) = [LOAD x ]" |
+"comp (Plus e1 e2 ) = comp e1 @ comp e2 @ [ADD]"
+
+lemma "exec (comp a) s stk = aval a s # stk "
+proof (induction a arbitrary: s stk)
+  case (N x)
+  then show ?case 
+    by simp
+next
+  case (V x)
+  then show ?case 
+    by simp
+next
+  case (Plus a1 a2)
+  then show ?case 
+    by simp
+qed
+
+
+(* 4.3 Proof automation 
+
+by *)
+
+lemma "\<forall> x . \<exists> y. x = y"
+  by auto
+
+
+lemma "A \<subseteq> B \<inter> C \<Longrightarrow> A \<subseteq> B \<union> C"
+  by auto
+
+lemma "A \<subseteq> B \<inter> C \<Longrightarrow> A \<subseteq> B \<union> C"
+  apply auto
+  done 
+
+
+(* by proof-method , here the proof method was auto 
+   by auto 
+  is same as saying
+   apply auto
+   done 
+*)
+
+(*
+  proof automation 
+   simp
+   auto 
+   fastforce 
+   force   -- some cases slower force may work when fastforce fails 
+   blast   -- the preferred 
+
+*)
+
+lemma
+"\<lbrakk> \<forall> x y. T x y \<or> T y x ;
+\<forall> x y. A x y \<and> A y x \<longrightarrow> x = y;
+\<forall> x y. T x y \<longrightarrow> A x y \<rbrakk> 
+\<Longrightarrow> \<forall> x y. A x y \<longrightarrow> T x y"
+  apply blast
+  done 
+
+(* no idea what \<lbrakk> \<rbrakk> mean , \<Longrightarrow> or even \<longrightarrow> *)
+
+lemma " \<lbrakk> xs @ ys = ys @ xs; length xs = length ys \<rbrakk> \<Longrightarrow> xs = ys"
+  by sledgehammer
+  by (metis append_eq_append_conv)
+
+(* arith is useful for linear arithmetic *)
+lemma "\<lbrakk> (a::nat ) \<le> x + b; 2*x < c \<rbrakk> \<Longrightarrow> 2*a + 1 \<le> 2*b + c"
+  by arith
+
+(* 4.3.3 Trying Them All
+
+If you want to try all of the above automatic proof methods you simply type
+try
+
+You can also add specific simplification and introduction rules:
+try simp: . . . intro: . . .
+
+There is also a lightweight variant try0 that does not call sledgehammer.
+*)
+
+
+
+
 
 
 
