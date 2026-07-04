@@ -252,17 +252,53 @@ next
 qed
 
 
-lemma
+lemma f3 :
   assumes H : "x = 3"  
-  shows "f x = f 3"
-proof 
-  assume "x = 3"
-  show "f 3 = f 3 " by apply (subst (1) H) 
+  shows "f x = f 3" 
+proof -
+  from H show ?thesis 
+    apply (subst (1) H)
+    by (rule refl)
+qed
+
+lemma f3b :
+  assumes H : "x = 3"  
+  shows "f x = f 3"  
+proof
+  by (simp add: HOL.arg_cong)
+
+
+lemma f3c :
+  assumes H : "x = 3"  
+  shows "f x = f 3"   
+  by (simp add: HOL.arg_cong)
+
+
+
+
+(*
+ (subst (1) H)
   by (rule refl)
 qed
 
-qed
+*)
 
+
+(* 
+lemma f3 :
+  assumes H : "x = 3"  
+  shows "f x = f 3" 
+proof 
+  shows "f 3 = f 3 " 
+proof
+    by apply (subst (1) H) 
+  by (rule refl)
+qed
+qed
+*)
+
+
+value "3 :: int "
 
 (*
   from H show?thesis
