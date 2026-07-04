@@ -137,5 +137,164 @@ next
 qed
 
 
+(* 
+apply (induction a)
+apply (auto split : aexp.split )
+done
+*)
+
+(* an optimized version of plus - well , it recognises something plus zero is something*)
+fun plus :: "aexp \<Rightarrow> aexp \<Rightarrow> aexp" where
+"plus (N i1 ) (N i2 ) = N (i1 + i2 )" |
+"plus (N i) a = (if i = 0 then a else Plus (N i) a)" |
+"plus a (N i) = (if i = 0 then a else Plus a (N i))" |
+"plus a1 a2 = Plus a1 a2 "
+
+lemma aval_plus: "aval (plus a1 a2 ) s = aval a1  s + aval a2 s"
+proof (induction a1)
+  case (N x)
+  then show ?case 
+    by simp
+next
+  case (V x)
+  then show ?case 
+    by simp
+next
+  case (Plus a11 a12)
+  then show ?case 
+    by simp
+qed
+
+
+fun asimp :: "aexp \<Rightarrow> aexp" where
+"asimp (N n) = N n" |
+"asimp (V x ) = V x" |
+"asimp (Plus a1 a2 ) = plus (asimp a1) (asimp a2 )"
+
+lemma "aval (asimp a) s = aval a s"
+proof (induction a)
+  case (N x)
+  then show ?case 
+    by simp
+next
+  case (V x)
+  then show ?case 
+    by simp
+next
+  case (Plus a1 a2)
+  then show ?case 
+    by simp
+qed
+
+
+(* 
+Exercise 3.1. To show that asimp_const really folds all subexpressions of
+the form Plus (N i ) (N j ), 
+define a function optimal :: aexp \<Rightarrow> bool that
+checks that its argument does not contain a subexpression of the form Plus
+(N i ) (N j ). 
+Then prove optimal (asimp_const a).
+*)
+
+value " false :: bool " 
+value " true :: bool "
+
+(*
+fun optimal :: "aexp \<Rightarrow> bool" where
+"optimal (N n) = false" |
+"optimal (V x ) = false" |
+"optimal (Plus a1 a2 ) = (case (optimal a1,optimal a2) of
+ (true,_) \<Rightarrow> true 
+ | (_ , true) \<Rightarrow> true 
+ | _ \<Rightarrow> (case (a1,a2) of 
+        (N i, N j) \<Rightarrow> true 
+        | _ \<Rightarrow> false ))" 
+*)
+
+(*
+fun optimal :: "aexp \<Rightarrow> bool" where
+"optimal (N n)  = True" |
+"optimal (V x ) = True" |
+"optimal (Plus a1 a2 ) = (case (a1,a2) of 
+   (N i, N j) \<Rightarrow> False 
+        | _ \<Rightarrow> (optimal a1) \<and> (optimal a2))" 
+*)
+
+fun optimal :: "aexp \<Rightarrow> bool" where
+"optimal (N n)  = True" |
+"optimal (V x ) = True" |
+"optimal (Plus a1 a2) = (case (a1,a2) of 
+    (N i, N j) \<Rightarrow> False 
+    | _ \<Rightarrow> (optimal a1) \<and> (optimal a2))"
+
+
+lemma optimal_1 :" optimal (asimp_const a) "
+proof (induction a)
+  case (N x)
+  then show ?case 
+    unfolding asimp_const.simps
+    unfolding optimal.simps
+    by (rule trueI) (* True is True by the axiom true introduction trueI*)  
+next
+  case (V x)
+  then show ?case 
+    unfolding asimp_const.simps
+    unfolding optimal.simps
+    by (rule trueI) (* True is True by the axiom true introduction trueI*)
+next
+  case (Plus a1 a2)
+  then show ?case 
+  proof (cases "(asimp_const a1 , asimp_const a2)")
+    case (Pair a b)
+    then show ?thesis 
+      by simp
+  qed
+qed
+
+
+
+
+lemma optimal_2 : " optimal (asimp_const a) "
+proof (induction a)
+  case (N x)
+  then show ?case 
+    unfolding asimp_const.simps
+    unfolding optimal.simps
+    by (rule trueI) (* True is True by the axiom true introduction trueI*)  
+next
+  case (V x)
+  then show ?case 
+    unfolding asimp_const.simps
+    unfolding optimal.simps
+    by (rule trueI) (* True is True by the axiom true introduction trueI*)
+next
+  case (Plus a1 a2)
+  then show ?case 
+  proof (cases "asimp_const a1")
+    case (N x1)
+    then show ?thesis 
+      unfolding asimp_const.simps
+      by simp
+  next
+    case (V x2)
+    then show ?thesis 
+      unfolding asimp_const.simps
+      by simp
+  next
+    case (Plus x31 x32)
+    then show ?thesis 
+      unfolding asimp_const.simps
+      by simp
+  qed  
+qed
+
+
+
+
+ 
+
+
+
+
 
 
