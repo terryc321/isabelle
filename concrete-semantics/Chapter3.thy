@@ -1,0 +1,141 @@
+
+theory Chapter3
+  imports Main
+begin
+
+type_synonym vname = "string"
+datatype aexp = N int | V vname | Plus aexp aexp
+
+value "N 5" (* represent number 5 *)
+value "V ''x''" (* this is the variable x *)
+value "''x''" (* this is how to write the string x *)
+value "''x'' :: string" (* this is how to write a string x *)
+value "(''x'' :: string) = (''x'' :: char list)" (* string is synonym for char list *)
+
+(* multiple expressions like vname \<Rightarrow> val , we put quotes around it 
+we will see if it causes problems later on *)
+type_synonym val = int
+type_synonym state = "vname \<Rightarrow> val"
+
+fun aval :: "aexp \<Rightarrow> state \<Rightarrow> val" where
+"aval (N n) s = n" |
+"aval (V x ) s = s x" |
+"aval (Plus a1 a2 ) s = (aval a1 s) + (aval a2 s)"
+
+(* one comment on use pdf pretty-printed code is that copy paste does not work into isabelle
+there is artifacts left over and will not parse *)
+value "aval (Plus (N 3) (V ''x'')) (\<lambda>x . 0)" (* returns 3 *)
+
+fun asimp_const :: "aexp \<Rightarrow> aexp" where
+"asimp_const (N n)  = N n" |
+"asimp_const (V x ) = V x" |
+"asimp_const (Plus a1 a2 ) =
+(case (asimp_const a1, asimp_const a2 ) of
+      (N n1 , N n2 ) \<Rightarrow> N (n1 + n2) |
+      (b1,b2 )       \<Rightarrow> Plus b1 b2 )"
+
+
+lemma aval_1 : " aval (asimp_const (N x)) s = aval (N x) s "
+proof (induction x)
+  case (nonneg n)
+  then show ?case (* aval (asimp_const (N (int n))) s = 
+                     aval (N (int n)) s *)
+      unfolding asimp_const.simps (* aval (N (int n)) s = 
+                                     aval (N (int n)) s *)
+      by (rule refl)
+next
+  case (neg n)
+  then show ?case (* aval (asimp_const (N (- int (Suc n)))) s = 
+                     aval (N (- int (Suc n))) s *)
+    unfolding asimp_const.simps (*aval (N (- int (Suc n))) s = 
+                                  aval (N (- int (Suc n))) s*)
+    by (rule refl)
+qed
+
+
+lemma aval_2 : " aval (asimp_const (N x)) s = aval (N x) s "
+proof
+  unfolding asimp_const.simps
+  by (rule refl)
+qed 
+
+(* 
+      unfolding asimp_const.simps aval.simps
+      by (rule refl)
+      then have "a2 = N x1" by simp  
+*)
+lemma aval_3 : "aval (asimp_const (Plus a1 a2)) s = aval (Plus a1 a2) s"
+proof (induction a1)
+  case (N x)  
+  then show ?case 
+  proof (cases a2)
+    case (N x1)
+    then show ?thesis
+    by (rule refl)
+  next
+    case (V x2)
+    then show ?thesis
+      unfolding asimp_const.simps aval.simps  
+      by simp       
+  next
+    case (Plus x31 x32)
+    then show ?thesis 
+      by simp
+  qed    
+next
+  case (V x)
+  then show ?case
+  proof (cases a2)
+    case (N x1)
+    then show ?thesis
+    by (rule refl)
+  next
+    case (V x2)
+    then show ?thesis
+      unfolding asimp_const.simps aval.simps  
+      by simp       
+  next
+    case (Plus x31 x32)
+    then show ?thesis 
+      by simp
+  qed
+  case (Plus a11 a22 )
+  then show ?case
+  proof (cases a2)
+    case (N x1)
+    then show ?thesis 
+      by simp
+  next
+    case (V x2)
+    then show ?thesis 
+      by simp
+  next
+    case (Plus x31 x32)
+    then show ?thesis
+      unfolding aval.simps  
+      by simp
+  qed  
+  qed
+
+
+(* this statement tries to show the simplification asimp_const 
+does not alter its evaluation under aval *)
+lemma "aval (asimp_const a) s = aval a s"
+proof (induction a)
+  case (N x)
+  then show ?case (* aval (asimp_const (N x)) s = aval (N x) s *)
+    by aval_2 
+next
+  case (V x)
+  then show ?case 
+    unfolding asimp_const.simps
+    by (rule refl)
+next
+  case (Plus a1 a2)
+  then show ?case (* aval (asimp_const (Plus a1 a2)) s = aval (Plus a1 a2) s *)
+    by aval_3
+qed
+
+
+
+
