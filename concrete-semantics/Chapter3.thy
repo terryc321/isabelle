@@ -252,6 +252,50 @@ next
 qed
 
 
+lemma
+  assumes H : "x = 3"  
+  shows "f x = f 3"
+proof 
+  assume "x = 3"
+  show "f 3 = f 3 " by apply (subst (1) H) 
+  by (rule refl)
+qed
+
+qed
+
+
+(*
+  from H show?thesis
+    apply (subst (1) H)   (* substitute 1st occurrence of x in f x = f 3 theres only one here *)
+    by (rule refl)
+    using H have "f 3 = f 3" 
+*)
+    
+
+
+(*
+lemma
+  assumes H : "x = 3"  
+  shows "f x = f 3"
+proof -
+  from H show?thesis
+    apply (subst (1) H)   (* substitute 1st occurrence of x in f x = f 3 theres only one here *)
+    using H 
+    
+    using this 
+   (* using H by simp only *)
+    (* print_facts *)
+*)
+ 
+    
+    
+  
+  
+   
+
+  
+  
+  
 
 
 lemma optimal_2 : " optimal (asimp_const a) "
@@ -268,12 +312,37 @@ next
     unfolding optimal.simps
     by (rule trueI) (* True is True by the axiom true introduction trueI*)
 next
-  case (Plus a1 a2)
+  case (Plus a1 a2)  
   then show ?case 
+    by simp
+qed
+
+
+(*      simp add: "asimp_const a1 = N x1" 
+
   proof (cases "asimp_const a1")
     case (N x1)
+    note eq = this
     then show ?thesis 
       unfolding asimp_const.simps
+      (*apply simp*)
+      apply (subst eq)
+      apply simp
+
+
+*)
+
+(*      have ass "asimp_const a1 = N x1" 
+        using that subst ass 
+        using that by subst
+  using that by simp
+
+      from this have ... 
+
+      subst (asm) "asimp_const a1 = N x1"
+*)
+
+(*
       by simp
   next
     case (V x2)
@@ -287,7 +356,7 @@ next
       by simp
   qed  
 qed
-
+*)
 
 
 
