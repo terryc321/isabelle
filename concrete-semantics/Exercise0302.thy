@@ -151,36 +151,17 @@ fun rebuild_vars :: "aexp list \<Rightarrow> aexp \<Rightarrow> aexp" where
 fun full_asimp :: "aexp \<Rightarrow> aexp " where
 "full_asimp (N n) = N n" |
 "full_asimp (V x ) = V x" |
-"full_asimp (Plus a1 a2) = (let ns = flatEn (Plus a1 a2) ; 
+"full_asimp (Plus a1 a2) = (
+ let ns = flatEn (Plus a1 a2) ; 
  vs = flatEv (Plus a1 a2) in  
  let rns = rebuild_nums ns (N 0) in 
  let rvs = rebuild_vars vs (V ''x'') in
  case ns of 
  [] \<Rightarrow> rvs |
  xs \<Rightarrow> (case vs of 
-       [] \<Rightarrow> V ''y'' |
-       ys \<Rightarrow> V ''y'')
-)" 
+       [] \<Rightarrow> rns |
+       ys \<Rightarrow> Plus rvs rns ))" 
 
-(*
-fun full_asimp :: "aexp \<Rightarrow> aexp " where
-"full_asimp (N n) = N n" |
-"full_asimp (V x ) = V x" |
-"full_asimp (Plus a1 a2) = 
-(let ns = flatEn (Plus a1 a2) in
-     let vs = flatEv (Plus a1 a2) in
-     in let rns = rebuild_nums ns (N 0) in
-        let rvs = rebuild_vars vs (V ''x'') in      
-      (case ns of 
-      [] \<Rightarrow> rvs
-      xs \<Rightarrow> (case vs of 
-               [] \<Rightarrow> rns |
-               _ \<Rightarrow> Plus rvs rns)))" 
-
-*)
-
-
-(*
 lemma "aval (full_asimp a) s = aval a s" 
 proof (induction a arbitrary: s)
   case (N x)
@@ -192,11 +173,44 @@ next
   case (Plus a1 a2)
   then show ?case by simp
 qed
+
+value "flatEn (V ''z'')" 
+value "full_asimp (Plus (V ''x'')(V ''y''))" 
+
+
+(* 
+norm form 
+if Plus a1 a2 contains no numbers then a1 a2 contain only vars
+otherwise a1 contains no numbers and a2 is (N i)
 *)
 
+fun is_norm :: "aexp \<Rightarrow> bool" where
+"is_norm (N _) = True" |
+"is_norm (V _) = True" | 
+"is_norm (Plus a1 a2) = ( 
+   if hasN a1 then False 
+   else (if hasN a2 then 
+     (case a2 of 
+       N i \<Rightarrow> True
+      | _ \<Rightarrow> False )
+   else True ))"
 
+lemma norm : "is_norm (full_asimp a)"
+proof (induction a)
+  case (N x)
+  then show ?case by simp
+next
+  case (V x)
+  then show ?case by simp
+next
+  case (Plus a1 a2)
+  then show ?case by simp
+qed
 
+thm norm
+(* is_norm (full_asimp ?a) *)
 
+(* completed exercise 3.2 *)
 
 
 
