@@ -1,0 +1,4 @@
+session Sandbox = HOL +
+  theories
+    Exercise0304
+
