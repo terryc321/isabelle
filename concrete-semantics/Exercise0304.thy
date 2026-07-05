@@ -3,6 +3,17 @@ theory Exercise0304
   imports Main
 begin
 
+(* check this file with isabelle build -D .  
+ with a ROOT file in concrete-semantics directory containing following 
+
+ session Sandbox = HOL +
+  theories
+    Exercise0304
+
+ this will check if this file has unfinished or broken proofs 
+
+*)
+
 (* Exercise 3.4. 
 Take a copy of theory AExp and modify it as follows. Extend
 type aexp with a binary constructor Times that represents multiplication. - done
@@ -65,7 +76,26 @@ fun asimp :: "aexp \<Rightarrow> aexp" where
 
 value "asimp (Times (N 3) (N 4))"
 
-lemma aval_simp0 : "aval (asimp a) s = aval a s"
+(*
+lemma plus_lemma : "plus (asimp a1) (asimp a2) = Plus a1 a2 "
+
+Auto Quickcheck found a counterexample:
+  a1 = N 0
+  a2 = N 0
+Evaluated terms:
+  Exercise0304.plus (asimp a1) (asimp a2) = N 0
+  Plus a1 a2 = Plus (N 0) (N 0)
+
+lemma "aval (Plus a1 a2) s = plus (aval a1 s) (aval a2 s) s"
+*)
+
+ 
+
+value "(let n = (N 0) in plus (asimp n) (asimp n))" 
+value "(let n = (N 0) in Plus n n)"
+
+(** target lemma to prove **)
+lemma aval_simp0 : "aval (asimp a) s = aval a s" 
 proof (induction a)
   case (N x)
   then show ?case 
@@ -77,13 +107,23 @@ next
 next
   case (Plus a1 a2)
   then show ?case 
-    by simp
+    print_facts
+    unfolding asimp.simps
+    print_facts
+    apply (simp add: aval.simps plus.simps)
+    
+    print_facts
+    
+
+   
 next
   case (Times a1 a2)
   then show ?case 
     by simp
 qed
 
+
+(*
 thm aval_simp0 
 
 
@@ -263,181 +303,8 @@ next
   then show ?case by simp
 qed
 
-thm aval_simp 
-(* aval (full_asimp ?a) ?s = aval ?a ?s *)
 
-(* here is a test case *)
-value "(let e = (Times (V ''y'') 
-                  (Plus (N 2) 
-                   (Times (N 4) 
-                    (Plus (V ''x'') 
-                      (Plus (N 3) 
-                       (Times (N 5) 
-                         (Plus (N 2)
-                           (Times (N 2) 
-                             (Plus (N 6)(N 8))))))))))
- in (let s2 = full_asimp e ; 
-         s1 = e ;
-         lookup = (\<lambda> v . (case v of 
-            ''x'' \<Rightarrow> 3 |
-            ''y'' \<Rightarrow> 4 |
-             _ \<Rightarrow> 0))
-      in (aval s1 lookup , aval s2 lookup)))"
-(* shockingly the disagree ! "(2504, 224)" :: "int \<times> int" *)
-
-
-value "flatEn (V ''z'')" 
-value "full_asimp (Plus (V ''x'')(V ''y''))" 
-
-(* 
-norm form 
-if Plus a1 a2 contains no numbers then a1 a2 contain only vars
-otherwise a1 contains no numbers and a2 is (N i)
 *)
 
-fun is_norm :: "aexp \<Rightarrow> bool" where
-"is_norm (N _) = True" |
-"is_norm (V _) = True" | 
-"is_norm (Plus a1 a2) = ( 
-   if hasN a1 then False 
-   else (if hasN a2 then 
-     (case a2 of 
-       N i \<Rightarrow> True
-      | _ \<Rightarrow> False )
-   else True ))" |
-"is_norm (Times a1 a2) = ( 
-   if hasN a1 then False 
-   else (if hasN a2 then 
-     (case a2 of 
-       N i \<Rightarrow> True
-      | _ \<Rightarrow> False )
-   else True ))" 
 
-
-lemma norm : "is_norm (full_asimp a)"
-proof (induction a)
-  case (N x)
-  then show ?case by simp
-next
-  case (V x)
-  then show ?case by simp
-next
-  case (Plus a1 a2)
-  then show ?case by simp
-next
-  case (Times a1 a2)
-  then show ?case by simp
-qed
-
-thm norm
-(* is_norm (full_asimp ?a) *)
-
-(* completed exercise 3.2 *)
-
-(**** exercise 3.3 starts here ****)
-
-(*
-Exercise 3.3. Substitution is the process of replacing a variable by an ex-
-pression in an expression. Define a substitution function 
-subst :: vname \<Rightarrow> aexp \<Rightarrow> aexp \<Rightarrow> aexp 
-such that subst x a e is the result of replacing every
-occurrence of variable x by a in e. 
-
-For example:
-subst ''x'' (N 3) (Plus (V ''x'') (V ''y'')) = 
-Plus (N 3) (V ''y'')
-
-Prove the so-called substitution lemma that says 
-that we can either substitute first and evaluate afterwards
-or evaluate with an updated state:
-aval (subst x a e) s = aval e (s(x := aval a s)). 
-
-As a consequence prove
-(aval a1 s = aval a2 s) \<Longrightarrow> 
-(aval (subst x a1 e) s = aval (subst x a2 e) s)   *)
-
-fun subst :: "vname \<Rightarrow> aexp \<Rightarrow> aexp \<Rightarrow> aexp" where
-"subst v r (N i) = N i" | 
-"subst v r (V x) = (if v = x then r else V x )" |
-"subst v r (Plus a1 a2) = Plus (subst v r a1) (subst v r a2)" | 
-"subst v r (Times a1 a2) = Times (subst v r a1) (subst v r a2)" 
-
-(* example given for subst -- expect True *)
-value "subst ''x'' (N 3) (Plus (V ''x'') (V ''y'')) = Plus (N 3) (V ''y'')" 
-
-(* := is inbuilt operator in isabelle 
- \y . if y = x then v else s(y)  
-*)
-lemma aval_subst1 : "aval (subst x a e) s = aval e (s(x := aval a s))"
-proof (induction e arbitrary: x a)
-  case (N x)
-  then show ?case by simp
-next
-  case (V x)
-  then show ?case by simp
-next
-  case (Plus e1 e2)
-  then show ?case by simp
-next
-  case (Times e1 e2)
-  then show ?case by simp
-qed
-
-lemma aval_subst2 : "(aval a1 s = aval a2 s) \<Longrightarrow> (aval (subst x a1 e) s = aval (subst x a2 e) s)"
-  by (simp add: aval_subst1)
-thm aval_subst2 
-(* aval ?a1.0 ?s = aval ?a2.0 ?s \<Longrightarrow> aval (subst ?x ?a1.0 ?e) ?s = aval (subst ?x ?a2.0 ?e) ?s *)
-
-(*print_facts*)
-
-(* exercise 3.3 completed *)
-
-(* exercise 3.4 starts here *)
-(* exercise 3.4 completed -- all definitions and proofs pass using extra binary Times operator 
- simply required adding an extra case to each proof 
-
- next
-  case (Times e1 e2)
-  then show ?case by simp
-  
-i would not get too concerned it seems too easy because it is just replacing like for like , 
-think about putting wooden blocks through holes , the color of the block does not affect 
-if the block goes through the hole , 
-importance is if the block goes through the hole - ie if isabelle says its proven
-*)
-
-(*
-lemma "True = False" 
-qed
-*)
-
-lemma aval0 : "aval (full_asimp a) s = aval a s"
-  quickcheck
-
-(* Testing conjecture with Quickcheck-exhaustive... 
-Quickcheck found a counterexample:
-  a = Times (N (- 1)) (N (- 1))
-  s = \<lambda>x. - 3
-Evaluated terms:
-  aval (full_asimp a) s = - 2
-  aval a s = 1 
-*)
-
-lemma aval1 : "aval (full_asimp a) s = aval a s"
-  by (simp add:aval_simp)
-(* theorem aval1: aval (full_asimp ?a) ?s = aval ?a ?s *)
-(*
-proof (prove)
-goal (1 subgoal):
- 1. aval (full_asimp a) s = aval a s 
-Bad context for command "lemma"\<^here> -- using reset state 
-Auto solve_direct: the current goal can be solved directly with
-  Exercise0304.aval_simp: aval (full_asimp ?a) ?s = aval ?a ?s
-  Exercise0304.aval_simp2: aval (full_asimp ?a) ?s = aval (?simp ?a) ?s 
-Auto Quickcheck found a counterexample:
-  a = Times (N (- 1)) (N (- 1))
-  s = \<lambda>x. - 3
-Evaluated terms:
-  aval (full_asimp a) s = - 2
-  aval a s = 1
-*)
+end
