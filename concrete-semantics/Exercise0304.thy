@@ -94,6 +94,43 @@ lemma "aval (Plus a1 a2) s = plus (aval a1 s) (aval a2 s) s"
 value "(let n = (N 0) in plus (asimp n) (asimp n))" 
 value "(let n = (N 0) in Plus n n)"
 
+(* \<open> \open and \close \<close> 
+    apply (subst (asm) (1) sym[\<open>aval (asimp a1) s = aval a1 s\<close>])
+    apply (subst (asm) (1) sym[\<open>aval (asimp a2) s = aval a2 s\<close>])
+*)
+
+(*
+lemma "aval (Exercise0304.plus (asimp a1) (asimp a2)) s = aval (asimp a1) s + aval (asimp a2) s"
+proof (induction a1 arbitrary: a2 s)
+  case (N x)
+  then show ?case 
+  proof (induction a2)
+    case (N x)
+    then show ?case by simp
+  next
+    case (V x)
+    then show ?case by simp
+  next
+    case (Plus a21 a22)
+    then show ?case 
+      apply (auto simp: asimp.simps plus.simps )
+  next
+    case (Times a21 a22)
+    then show ?case sorry
+  qed
+  
+next
+  case (V x)
+  then show ?case sorry
+next
+  case (Plus a11 a12)
+  then show ?case sorry
+next
+  case (Times a11 a12)
+  then show ?case sorry
+qed
+*)
+
 (** target lemma to prove **)
 lemma aval_simp0 : "aval (asimp a) s = aval a s" 
 proof (induction a)
@@ -106,13 +143,30 @@ next
     by simp
 next
   case (Plus a1 a2)
-  then show ?case 
+  then show ?case     
     print_facts
     unfolding asimp.simps
+    apply (subst (1) sym [OF \<open> asimp (Plus a1 a2) = Exercise0304.plus (asimp a1) (asimp a2) \<close> ] )
+(*    apply (subst (asm)   [OF \<open> aval (Plus a1 a2) s = aval a1 s + aval a2 s \<close>]  ) *)
+(**** ******************************************************************************************)
+(*** no idea what i am doing ****)
+
+thm aval.simps
+thm asimp.simps
+thm Exercise0304.plus.simps
+    apply (subst (asm)   sym [OF \<open> aval (Plus a1 a2) s = aval a1 s + aval a2 s \<close>]  ) 
+
+    unfolding aval.simps
+
+    apply (subst (1) sym [OF \<open> aval (asimp a1) s = aval a1 s \<close> ] )
+    apply (subst (1) sym [OF \<open> aval (asimp a2) s = aval a2 s \<close> ] )
+
+
+ 
+    unfolding aval.simps
     print_facts
-    apply (simp add: aval.simps plus.simps)
     
-    print_facts
+
     
 
    
