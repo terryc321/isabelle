@@ -1,5 +1,5 @@
 
-theory Exercise0304
+theory Exercise0304ProofOne
   imports Main
 begin
 
@@ -8,7 +8,7 @@ begin
 
  session Sandbox = HOL +
   theories
-    Exercise0304
+    Exercise0304ProofOne
 
  this will check if this file has unfinished or broken proofs 
 

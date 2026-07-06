@@ -1,6 +1,13 @@
 
 # concrete semantics
 
+# review chapter 2 solutions
+
+
+# have we proved it 
+
+to check if actually proved anything use isabelle program directly not isabelle-jedit pide editor.
+
 create a ROOT file in concrete-semantics directory , i have one already 
 
 ```
