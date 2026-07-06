@@ -113,29 +113,106 @@ goal (1 subgoal):
 
 *)
 
+
+lemma "\<not> surj (f :: 'a \<Rightarrow> 'a set )"
+proof
+assume 0: "surj f"
+from 0 have 1: "\<forall> A. \<exists> a. A = f a" by(simp add: surj_def )
+from 1 have 2: "\<exists> a. {x . x \<notin> f x } = f a" by blast
+from 2 show "False" by blast
+qed
+
+(* 
+fun optimal :: "aexp \<Rightarrow> bool" where
+"optimal (N n)  = True" |
+"optimal (V x ) = True" |
+"optimal (Plus a1 a2) = (case (a1,a2) of 
+    (N i, N j) \<Rightarrow> False 
+    | _ \<Rightarrow> (optimal a1) \<and> (optimal a2))"
+
+fun asimp_const :: "aexp \<Rightarrow> aexp" where
+"asimp_const (N n)  = N n" |
+"asimp_const (V x ) = V x" |
+"asimp_const (Plus a1 a2 ) =
+(case (asimp_const a1, asimp_const a2 ) of
+      (N n1 , N n2 ) \<Rightarrow> N (n1 + n2) |
+      (b1,b2 )       \<Rightarrow> Plus b1 b2 )"
+
+lemma optimal_2 : "optimal (asimp_const v)"
+is a proposition - does simplifying constants asimp_const result in an 
+optimal expression ?
+
+lemma optimal_2 : "optimal (asimp_const v)"
+induction on v 
+v is (N n) then 
+    Prove : optimal (asimp_const (N n))
+    optimal (N n) by asimp_const def
+    True by optimal def
+v is (V x) 
+    Prove : optimal (asimp_const (V x))
+    optimal (V x) by asimp_const def
+    True by optimal def
+v is (Plus a1 a2)
+    Prove : optimal (asimp_const (Plus a1 a2))
+*)
+
+
+(*
+lemma "\<lbrakk> optimal (asimp_const v1) ; optimal (asimp_const v2) \<rbrakk> 
+       \<Longrightarrow> optimal (asimp_const (Plus v1 v2))"
+proof (cases (Pair a b))
+  *)
+
+lemma optimal_3 : "optimal (asimp_const (Plus (N i) (N j)))"
+  unfolding asimp_const.simps
+  apply (simp)
+
+ 
+
 lemma optimal_2 : "optimal (asimp_const v)"
 proof (induction v)
   case (N x)
-  show ?case 
-    unfolding asimp_const.simps(1) optimal.simps
-    by (rule TrueI)
-
+  then show ?case by simp
 next
   case (V x)
-  show ?case 
+  then show ?case by simp
+next
+  case (Plus a1 a2)
+  then show ?case
+  proof cases
+    case both_nums
+    (* Under this branch, asimp_const unfolds to N (n1 + n2) *)
+    then show ?thesis 
+      by (simp add: asimp_const.simps optimal.simps Plus.IH split: aexp.splits)
+  next
+    case not_both_nums
+    (* Under this branch, it evaluates to Plus b1 b2 where b1,b2 are not both N *)
+    then show ?thesis using Plus.IH
+      by (auto simp add: asimp_const.simps optimal.simps)
+  qed
+qed
+
+ 
+
+  
+
+proof (induction v)
+  case (N x)
+  then show ?case 
+    unfolding asimp_const.simps(1) optimal.simps
+    by (rule TrueI)
+next
+  case (V x)
+  then show ?case 
     unfolding asimp_const.simps(2) optimal.simps
     by (rule TrueI)
-
 next
   case (Plus v1 v2)
-  show ?case 
-    proof (cases "asimp_const v1" "asimp_const v2" rule: prod.exhaust)
-    case (Pair b1 b2)
-    then show ?thesis
-      using Plus.IH
-      by (cases b1; cases b2) auto
-    qed
+  then show ?case 
+    apply (simp add: t.splits )
+    
   qed
+  
 
 
 (*

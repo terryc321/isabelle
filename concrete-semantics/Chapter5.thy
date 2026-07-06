@@ -1,0 +1,159 @@
+
+theory Chapter5
+  imports Main
+begin
+
+(* chapter five of concrete semantics 
+ \<lbrakk> \<rbrakk> brackets are [ |    | ] 
+*)
+
+thm conjI  (* ?P \<Longrightarrow> ?Q \<Longrightarrow> ?P \<and> ?Q *)
+(* 
+conjunction introduction conjI 
+
+   P   Q
+  ------- 
+   P \<and> Q 
+
+ in proving this below 
+
+ P \<Longrightarrow> Q \<Longrightarrow>   P \<and> Q \<and> P
+ ^^^^^^^^^^^   ^^^^^^^^^
+  assumptions  conclusion
+  
+so when we use conjI we end up working backward up the derivation tree and not
+using forward reasoning , working backwards is called goal directed reasoning
+
+given a goal , derive the assumptions or something that is obviously true like x = x 
+
+   P \<and> Q \<Longrightarrow> P   from HOL.conjunct1 
+  
+   P \<and> Q \<Longrightarrow> Q   from HOL.conjunct2
+
+*)
+
+lemma trivial0 : " \<lbrakk> P  \<rbrakk> \<Longrightarrow> P " 
+proof -
+  assume P: "P"
+  then show "P" by assumption
+qed
+
+(* so we have to assume "P" otherwise we have an empty set of assumptions*)
+
+(* here we have something that has no assumptions , something 
+that is forever true 
+something is always equal to itself 
+
+*)
+lemma trivial_eq : " P = P " 
+proof -  
+  show "P = P" by (rule refl)
+qed
+
+(* this is reflexivity *)
+thm refl  (* ?t = ?t *)
+
+
+
+
+(* transitivity rules *)
+print_trans_rules
+
+lemma itself : " P \<Longrightarrow> P" 
+proof - 
+  assume "P" 
+  then show "P" by assumption
+qed
+
+(*thm conjI*)
+
+(*
+lemma itself2 : " P \<and> Q \<Longrightarrow> P" 
+proof - 
+  assume "P \<and> Q" 
+  then have "P" by (rule conjunct1)
+qed
+*)
+
+lemma itself4 : " P \<and> Q \<Longrightarrow> Q" 
+proof - 
+  assume "P \<and> Q" 
+  then show "Q" by (rule conjunct2) 
+qed
+
+
+
+
+(* 
+hol TrueI  P \<Longrightarrow> P ?
+*)
+
+(*
+(*given P , Q we can claim  P and (Q and P) *)
+lemma conj_rule : " \<lbrakk> P ; Q \<rbrakk> \<Longrightarrow> P \<and> (Q \<and> P) " 
+proof - 
+  assume "P"
+  assume "Q" 
+  then from P Q have "Q \<and> P" by (rule conjI)
+
+  have "P \<and> (Q \<and> P) = Q \<and> P" by (rule conjI)
+  then have "Q \<and> P = P" by (rule conjI)
+  then have "P = P" by (rule refl)
+
+  assume P: "P" 
+  assume Q: "Q" 
+  have "Q \<and> P" using P Q by (rule conjI)
+
+  show "P \<and> (Q \<and> P" 
+  proof (rule conjI)
+*)  
+
+(*
+
+
+find_theorems "P \<equiv> P"
+
+  from this have "P" by (erule impE)
+
+
+
+  from this have "P" by simp
+  then have "Q" by (rule conjI , assumption)
+  then show "P \<and> Q" by simp
+  
+  
+  qed
+  have HP: "P \<and> (Q \<and> P) = P" by (rule conjI, assumption)
+  have "P \<and> (Q \<and> P) = Q \<and> P" by (rule foo)
+  
+  assume P : "P" and Q : "Q" 
+  have "Q \<and> P" using P Q by rule (conjI)
+  show "P \<and> (Q \<and> P)" 
+  proof - 
+    show "P" by P
+
+  assume "P" 
+  assume "Q"
+  have 1 : "P = P \<and> (Q \<and> P)" by (rule conjI , assumption) 
+  have 2 : "P \<and> (Q \<and> P) = Q \<and> P " by simp
+  have 3 : "Q \<and> P = Q" by simp
+  finally show ?case by simp
+qed
+*)
+(*
+  from this have "P" by assumption 
+  from this have "Q" 
+  proof -
+    have "P" 
+  qed 
+next
+  show Q by (rule conjI , assumption , rule conjI, assumption+)
+  apply assumption
+  apply (rule conjI)
+  apply assumption
+  apply assumption
+*)
+
+
+
+  
