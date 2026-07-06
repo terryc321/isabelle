@@ -5,9 +5,18 @@ begin
 
 (* chapter five of concrete semantics 
  \<lbrakk> \<rbrakk> brackets are [ |    | ] 
+ \<lbrakk> P ; Q \<rbrakk>  is shorthand for P \<Longrightarrow> Q \<Longrightarrow> 
+ \<lbrakk> P ; Q \<rbrakk> \<Longrightarrow> P \<and> Q  shorthand for P \<Longrightarrow> Q \<Longrightarrow> P \<and> Q
+i think , not sure about \<Longrightarrow> and \<longrightarrow> difference 
+ \<Longrightarrow> may be meta level 
+ \<longrightarrow> may be a logic level , who knows
 *)
 
-thm conjI  (* ?P \<Longrightarrow> ?Q \<Longrightarrow> ?P \<and> ?Q *)
+thm HOL.conjI  
+thm HOL.conjunct1
+thm HOL.conjunct2
+
+(* ?P \<Longrightarrow> ?Q \<Longrightarrow> ?P \<and> ?Q *)
 (* 
 conjunction introduction conjI 
 
@@ -53,107 +62,98 @@ qed
 (* this is reflexivity *)
 thm refl  (* ?t = ?t *)
 
+thm conjI (* ?P \<Longrightarrow> ?Q \<Longrightarrow> ?P \<and> ?Q *)
+thm conjE (* ?P \<and> ?Q \<Longrightarrow> (?P \<Longrightarrow> ?Q \<Longrightarrow> ?R) \<Longrightarrow> ?R *)
+(* conjunct1 conjunct2 only for assumptions ? *)
+thm HOL.conjunct1 (* ?P \<and> ?Q \<Longrightarrow> ?P *)
+thm HOL.conjunct2 (* ?P \<and> ?Q \<Longrightarrow> ?Q *)
 
 
-
-(* transitivity rules *)
-print_trans_rules
-
-lemma itself : " P \<Longrightarrow> P" 
-proof - 
-  assume "P" 
-  then show "P" by assumption
+lemma trivial_and1 : " \<lbrakk> P ; Q \<rbrakk> \<Longrightarrow> P \<and> Q "
+proof -
+  assume P: "P" and Q:"Q" 
+  show "P \<and> Q" using \<open>P\<close> \<open>Q\<close> by (rule conjI)
 qed
 
-(*thm conjI*)
+(* disjunction introduction *)
+thm disjI1 (*?P \<Longrightarrow> ?P \<or> ?Q *)
+thm disjI2 (*?Q \<Longrightarrow> ?P \<or> ?Q *)
 
-(*
-lemma itself2 : " P \<and> Q \<Longrightarrow> P" 
-proof - 
-  assume "P \<and> Q" 
-  then have "P" by (rule conjunct1)
-qed
-*)
-
-lemma itself4 : " P \<and> Q \<Longrightarrow> Q" 
-proof - 
-  assume "P \<and> Q" 
-  then show "Q" by (rule conjunct2) 
-qed
-
-
-
-
-(* 
-hol TrueI  P \<Longrightarrow> P ?
-*)
-
-(*
-(*given P , Q we can claim  P and (Q and P) *)
-lemma conj_rule : " \<lbrakk> P ; Q \<rbrakk> \<Longrightarrow> P \<and> (Q \<and> P) " 
-proof - 
-  assume "P"
-  assume "Q" 
-  then from P Q have "Q \<and> P" by (rule conjI)
-
-  have "P \<and> (Q \<and> P) = Q \<and> P" by (rule conjI)
-  then have "Q \<and> P = P" by (rule conjI)
-  then have "P = P" by (rule refl)
-
+(* given P then claim P \<or> anything! *)
+lemma trivial_or1 : " \<lbrakk> P \<rbrakk> \<Longrightarrow> P \<or> False "
+proof -
   assume P: "P" 
-  assume Q: "Q" 
-  have "Q \<and> P" using P Q by (rule conjI)
+  show "P \<or> False" using \<open>P\<close> by (rule disjI1)
+qed
 
-  show "P \<and> (Q \<and> P" 
-  proof (rule conjI)
-*)  
+(* given Q claim anything! \<or> Q*)
+lemma trivial_or2 : " \<lbrakk> Q \<rbrakk> \<Longrightarrow> False \<or> Q "
+proof -
+  assume Q: "Q" 
+  show "False \<or> Q" using \<open>Q\<close> by (rule disjI2)
+qed
+
+
+(* forward proof seems more difficult as its expecting user to put components together . 
+like building lego without manual but expecting the final result
+*)
+lemma trivial_task1 : " \<lbrakk> P ; Q \<rbrakk> \<Longrightarrow> P \<and> (Q \<and> P) "
+proof -
+  assume P:"P" and Q:"Q"
+  show "P \<and> (Q \<and> P)"               (* \<leftarrow> This is the important line *)
+  proof -
+    have QP : "Q \<and> P" using Q P by (rule conjI)
+    have PQP: "P \<and> Q \<and> P" using P QP by (rule conjI) 
+    then show ?thesis by assumption
+  qed
+qed
+
+
+
+lemma foo : " \<lbrakk> P ; Q \<rbrakk> \<Longrightarrow> P \<and> (Q \<and> P) "
+  apply(rule conjI)
+  apply(assumption)
+  apply(rule conjI)
+  apply(assumption)
+  apply(assumption)
+  done
 
 (*
+lemma trivial_task2 : " \<lbrakk> P ; Q \<rbrakk> \<Longrightarrow> P \<and> (Q \<and> P) "
+proof -
+  assume P:"P" and Q:"Q" 
+  show "P \<and> (Q \<and> P)"               (* \<leftarrow> This is the important line *)
+  proof -
+*)
+ 
 
+(*
+lemma trivial_task2 : " \<lbrakk> P ; Q \<rbrakk> \<Longrightarrow> P \<and> (Q \<and> P) "
+proof -
+  assume P:"P" and Q:"Q" 
+  then show "P \<and> (Q \<and> P)"               (* \<leftarrow> This is the important line *)
+  proof -
 
-find_theorems "P \<equiv> P"
-
-  from this have "P" by (erule impE)
-
-
-
-  from this have "P" by simp
-  then have "Q" by (rule conjI , assumption)
-  then show "P \<and> Q" by simp
-  
-  
+    have QP : "Q" by (rule conjI)
+    have PQP: "P \<and> Q \<and> P" using P QP by (rule conjI) 
+    then show ?thesis by assumption
   qed
-  have HP: "P \<and> (Q \<and> P) = P" by (rule conjI, assumption)
-  have "P \<and> (Q \<and> P) = Q \<and> P" by (rule foo)
-  
-  assume P : "P" and Q : "Q" 
-  have "Q \<and> P" using P Q by rule (conjI)
-  show "P \<and> (Q \<and> P)" 
-  proof - 
-    show "P" by P
-
-  assume "P" 
-  assume "Q"
-  have 1 : "P = P \<and> (Q \<and> P)" by (rule conjI , assumption) 
-  have 2 : "P \<and> (Q \<and> P) = Q \<and> P " by simp
-  have 3 : "Q \<and> P = Q" by simp
-  finally show ?case by simp
 qed
 *)
-(*
-  from this have "P" by assumption 
-  from this have "Q" 
-  proof -
-    have "P" 
-  qed 
-next
-  show Q by (rule conjI , assumption , rule conjI, assumption+)
-  apply assumption
-  apply (rule conjI)
-  apply assumption
-  apply assumption
+
+
+(* increedibly detailed every step has to be meticulously clean 
+  rule conjI  the arguments must come in order left to right 
+   using A B by (rule conjI)  to give 
+
+also the file has to be completely tidy at all times or cannot hope to get isabelle to accept it
+
 *)
 
 
+(* the end of the Chapter5.thy 
+without the word end , isabelle build will say there
+is an error
+*)
+end
 
-  

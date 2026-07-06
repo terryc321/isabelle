@@ -153,6 +153,56 @@ next
   apply assumption
   apply assumption
 *)
+--------------------------------
+
+  from this have "P" by (rule conjunct2)
+  
+  assume P: "P" and Q: "Q" 
+  have QP : "Q \<and> P" using \<open>Q\<close> \<open>P\<close> by (rule conjI)
+  then have "P \<and> QP" using \<open>P\<close> \<open>QP\<close> by simp 
+  
+(*
+\<open>Q\<close> \<open>P\<close> by (rule conjI)
+  then have "P \<and> (Q \<and> P)" using \<open>P\<close> \<open>(Q \<and> P)\<close> by (rule conjI)
+*)
+  
+
+
+
+
+(* can we derive Q from not Q ? 
+lemma trivial_not1 : " \<lbrakk> (\<not> Q) \<Longrightarrow> False \<rbrakk> \<Longrightarrow> Q "
+proof -
+  assume Q: "Q" 
+  show "False \<or> Q" using \<open>Q\<close> by (rule disjI2)
+qed
+*)
+
+
+
+
+(*
+  have "P" by (rule conjunct1)
+  also have "Q" by (rule conjunct2)
+  assume P : "P" 
+  assume Q : "Q" 
+  then show "P \<and> Q" by (rule conjI P Q) 
+*)
+   
+
+(*
+lemma trivial2 : " \<lbrakk> P ; Q \<rbrakk> \<Longrightarrow> P \<and> (Q \<and> P) "
+proof -
+  have "P" by (rule conjI)
+  assume P : "P"
+  assume Q : "Q" 
+  have "P \<and> (Q \<and> P)" 
+    also have "Q \<and> P" by (rule conjI)
+
+  have "P \<Longrightarrow> Q \<Longrightarrow> Q \<and> P" by (rule conjunctionI)
+*)
+
+-----------------------------------
 
 
 
