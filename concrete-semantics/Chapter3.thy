@@ -34,7 +34,7 @@ fun asimp_const :: "aexp \<Rightarrow> aexp" where
       (N n1 , N n2 ) \<Rightarrow> N (n1 + n2) |
       (b1,b2 )       \<Rightarrow> Plus b1 b2 )"
 
-lemma "aval (asimp_const v) s = aval v s"
+lemma asimp_const1 : "aval (asimp_const v) s = aval v s"
   by (induction v rule: asimp_const.induct , simp_all, auto split: aexp.split)
 
 (* an optimized version of plus - well , it recognises something plus zero is something*)
@@ -45,13 +45,127 @@ fun plus :: "aexp \<Rightarrow> aexp \<Rightarrow> aexp" where
 "plus a1 a2 = Plus a1 a2 "
 
 lemma aval_plus: "aval (plus a1 a2 ) s = aval a1  s + aval a2 s"
-  by( induction a1 a2 rule: plus.induct , simp_all)
+  by( induction a1 rule: plus.induct , simp_all)
+
+fun asimp :: "aexp \<Rightarrow> aexp" where
+"asimp (N n) = N n" |
+"asimp (V x ) = V x" |
+"asimp (Plus a1 a2 ) = plus (asimp a1) (asimp a2 )"
+
+lemma asimp1 : "aval (asimp a) s = aval a s"
+  by (induction a rule: asimp.induct , simp_all add: aval_plus)
 
 
+(* 
+Exercise 3.1. To show that asimp_const really folds all subexpressions of
+the form Plus (N i ) (N j ), 
+define a function optimal :: aexp \<Rightarrow> bool that
+checks that its argument does not contain a subexpression 
+of the form Plus (N i ) (N j ). 
+Then prove optimal (asimp_const a).
+*)
+
+fun optimal :: "aexp \<Rightarrow> bool" where
+"optimal (N n)  = True" |
+"optimal (V x ) = True" |
+"optimal (Plus a1 a2) = (case (a1,a2) of 
+    (N i, N j) \<Rightarrow> False 
+    | _ \<Rightarrow> (optimal a1) \<and> (optimal a2))"
+
+value "N x"
+value "true" (* true is unknown *)
+value "True" (* True has type bool *)
+(* 
+ cant do this has wrong type ?
+ assume 0: "(N x)" 
+
+    
+
+    print_facts
+    from 1 show ?case by (rule ssubst)
+
+    (* Now replace in the goal *)
+    from this have 2: "optimal (N x)" by (rule ssubst)
+    from this have 3: "True" by (rule optimal.simps)
+    
+         
+    
+     
+
+    show "optimal (asimp_const (N x))" using 1 by (rule 1)
+
+      using cong
+      apply (rule ssubst)
+      apply (rule optimal.simps)
+
+    assume 0: "optimal (asimp_const (N x))"
+    from 0 have 1: "asimp_const (N x) = (N x) " by (simp add: asimp_const.simps(1))
+    from 1 have 2: "optimal (asimp_const (N x)) = optimal (N x)" by (simp add: 1)
+    from 2 have 3: "optimal (N x) = True" by (simp add: 2)
+    print_facts
+
+(* proof (state)
+goal (1 subgoal):
+ 1. optimal (asimp_const (N x)) 
+*)
+    thm asimp_const.simps(1)
+   (* asimp_const (N ?n) = N ?n *)
+
+*)
+
+lemma optimal_2 : "optimal (asimp_const v)"
+proof (induction v)
+  case (N x)
+  show ?case 
+    unfolding asimp_const.simps(1) optimal.simps
+    by (rule TrueI)
+
+next
+  case (V x)
+  show ?case 
+    unfolding asimp_const.simps(2) optimal.simps
+    by (rule TrueI)
+
+next
+  case (Plus v1 v2)
+  show ?case 
+    proof (cases "asimp_const v1" "asimp_const v2" rule: prod.exhaust)
+    case (Pair b1 b2)
+    then show ?thesis
+      using Plus.IH
+      by (cases b1; cases b2) auto
+    qed
+  qed
 
 
+(*
 
-
+lemma optimal_2 :" optimal (asimp_const v) "
+proof (induction v)
+  case (N x)
+  then show ?case
+    unfolding asimp_const.simps(1) 
+    unfolding optimal.simps   (* line 122 *)
+    by (rule TrueI)
+next 
+  case (V x)
+  then show ?case
+    unfolding asimp_const.simps
+    unfolding optimal.simps
+    by (rule TrueI)
+next
+  case (Plus v1 v2)
+  then show ?case using Plus.IH by (auto split: aexp.split)
+qed
+*)
+(* it is not good news , isabelle build says line 122 
+  Running concrete-semantics ...
+concrete-semantics: theory concrete-semantics.Chapter3
+concrete-semantics FAILED (see also "isabelle build_log -H Error concrete-semantics")
+*** Illegal application of proof command in "state" mode
+*** At command "unfolding" (line 122 of "~/code/isabelle/concrete-semantics/Chapter3.thy")
+Unfinished session(s): concrete-semantics
+*)
 
 (* end of Chapter3 *)
 end

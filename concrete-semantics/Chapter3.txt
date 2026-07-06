@@ -1,4 +1,133 @@
 
+
+
+(*
+    apply (rule asimp_const.simps(1))
+
+    have "asimp_const (N x) = N x"  by (rule asimp_const.simps(1))
+
+  also have "optimal (asimp_const (N x)) = optimal (N x)"
+    using \<open>asimp_const (N x) = N x\<close> by (rule arg_cong)
+
+  also have "... = True"
+    by (rule optimal.simps)
+
+  finally shows ?case 
+  
+
+
+  proof -     
+    have 0: "asimp_const (N x) = N x"
+      by (rule asimp_const.simps(1))   (* explicit rule *)
+
+    also have 1: "optimal (asimp_const (N x)) = optimal (N x)"
+      using 0 by (rule arg_cong)
+
+    also have 2: "optimal (N x) = True" by (rule optimal.simps)
+    finally show?case using 1 2 by (rule ssubst)
+
+  qed
+qed
+*)
+(*
+   by (subst asimp_const.simps ,simp add:optimal.simps) (* optimal (asimp_const (N x))) *)
+    from apply (subst asimp_const.simps) 
+    print_facts
+    have eq:   "asimp_const (N x) = N x" by (rule asimp_const.simps)
+    have cong: "optimal (asimp_const (N x)) = optimal (N x)"   using eq by (rule arg_cong)
+(*    thm optimal.simps(1)*)
+    have yes:  "optimal (N x) = True" by (rule optimal.simps(1))
+    have "optimal (N x)" using this by (subst eq)
+    print_facts
+     (* this substitutes equals for equals in the goal *)
+    from local.cong show ?case by (rule ssubst)  
+    have t: "optimal (N x) = True" using cong by (rule optimal.simps)
+    have 2: "optimal (asimp_const (N x)) = optimal (N x)"  by 
+    have 2:  "optimal (asimp_const (N x)) = optimal (N x)" by (rule 1)
+    (* Now use it on the main goal *)
+    show "optimal (asimp_const (N x))"  using 1 by (subst 1)
+    thm asimp_const.simps
+    have eq: "asimp_const (N x) = N x" by (rule asimp_const.simps(1))
+    print_facts
+    
+    by simp
+next
+  case (V x)
+  then show ?case by simp
+next
+  case (Plus v1 v2)
+  then show ?case sorry
+qed
+
+
+  apply(simp only: asimp_const.simps , auto)
+  
+
+  apply (induction a1 rule: optimal.induct)
+    apply (induction a2)
+  apply(auto , simp_all add: aexp.split)
+
+  case (N x)
+  then show ?case 
+    apply (auto split: aexp.split)
+next
+  case (V x)
+  then show ?case sorry
+next
+  case (Plus a11 a12)
+  then show ?case sorry
+qed 
+*)
+(*
+ rule: asimp_const.induct)
+  apply (induction a1)
+  print_facts
+
+  apply(auto)
+  apply(simp_all)
+*)
+
+lemma optimal_1 :" optimal (asimp_const a) "
+proof (induction a)
+  case (N x)
+  then show ?case by simp
+next
+  case (V x)
+  then show ?case by simp
+next
+  case (Plus a1 a2)
+  thus ?case     
+    apply (simp add: asimp_const.simps split: aexp.split) 
+    
+qed
+
+(*
+  apply(auto)
+  apply (auto split: aexp.split)
+*)
+
+-------------------------------------------------------------
+
+    thm Plus.IH
+    print_facts
+    unfolding asimp_const.simps
+    
+    
+    unfolding optimal.simps
+
+
+    by (rule TrueI)
+
+
+    apply (rule optimal.simps(3))
+  proof - 
+    unfolding asimp_const.simps(1)     
+    show ?case by (rule optimal.simps) 
+  next
+qed
+
+----------------------------------------------
+
 theory Chapter3
   imports Main
 begin
