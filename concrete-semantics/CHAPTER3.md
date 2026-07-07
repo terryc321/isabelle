@@ -11,7 +11,7 @@ little optimizers for them and show how to compile arithmetic expressions
 to a simple stack machine. Of course we also prove the correctness of the
 optimizers and compiler!
 
-this is my [^typesynonym] footnote 
+
 
 ## 3.1 Arithmetic Expressions
 
@@ -41,6 +41,8 @@ is defined by the datatype aexp:
 type_synonym vname = string
 datatype aexp = N int | V vname | Plus aexp aexp
 ```
+
+see type_synonym [^type_synonym] note 
 
 where *int* is the predefined type of integers and vname stands for variable
 name. Isabelle strings require two single quotes on both ends, for example
@@ -171,5 +173,8 @@ fun asimp_const :: "aexp ⇒ aexp" where
  (b 1,b 2 ) ⇒ Plus b 1 b 2 )"
 ```
 
+- [ ] todo find video link 
 
+[^type_synonym]: type synonym is to make datatype appear identical but at some time later the user can change alter it which may cause the system confusion 
+see laurence paulson youtube video 
 
