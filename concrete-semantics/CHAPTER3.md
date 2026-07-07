@@ -116,8 +116,8 @@ following more compact notation
 which works for any number of variables, even for none: <> is syntactic sugar
 for (λx . 0).
 
--[ ] todo - replace \x with lambda 
--[ ] todo - get emacs to recognise \lambda and convert it ?
+- [ ] todo - replace \x with lambda 
+- [ ] todo - get emacs to recognise \lambda and convert it ?
 
 ```
 <> means \x . 0 
