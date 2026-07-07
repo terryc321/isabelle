@@ -253,7 +253,7 @@ It behaves like Plus under evaluation:
 lemma aval_plus: "aval (plus a1 a2 ) s = aval a1 s + aval a2 s"
 ```
 
-the proof can be found here [^aval_plus] .
+the proof can be found here [aval_plus](#avalplus) .
 
 The proof is by induction on a1 and a2 using the computation induction rule
 for plus (plus.induct ). 
@@ -364,6 +364,8 @@ course material online at [ ](https://www.cl.cam.ac.uk/2122/L21/)
 youtube video series online [Interactive Formal Verification](https://youtu.be/5I5XuBzpmwQ?si=CkIe034cWmpgKUXB)
 
 ## Proofs 
+
+### aval_plus proof
 
 [^aval_plus]: 
 ```
