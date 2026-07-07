@@ -132,6 +132,7 @@ next
   then show ?case 
   proof - 
 
+  (* this is really a new one - consider *)
   consider (BothN) n1 n2 where "asimp_const v1 = N n1" "asimp_const v2 = N n2"
   | (NotBothN) "\<not> (\<exists> n1 n2. asimp_const v1 = N n1 \<and> asimp_const v2 = N n2)"
    by blast
@@ -141,8 +142,9 @@ next
       case BothN
       then show ?thesis 
       proof - 
-        show ?thesis using BothN Plus.IH by simp
-      qed  
+        have h3: "asimp_const (Plus v1 v2) = N (n1 + n2)"  using BothN  by simp
+        then show ?thesis using BothN h3 Plus.IH by simp
+      qed
     next
       case NotBothN
       then show ?thesis    
@@ -153,143 +155,173 @@ next
   qed
 qed
 
+thm ccontr
 
-
-
-(* level two - human readable proof 
-
-
-aval (asimp_const v) s = aval v s
-
-induction on v 
-case (N x) so v will be some number (N x) 
-
-aval (asimp_const (N x)) s = aval (N x) s
-ok - goal matches 
-by asimp_const definition asimp_const (N n) = N n
-so 
-aval (N x) s = aval (N x) s
-by asimp_const.simps 
-
-
+(* assumes "X"
+   shows  "Y" 
+rather than "X \<Rightarrow> Y" 
 *)
-
-
-
 (*
-(* an optimized version of plus - well , it recognises something plus zero is something*)
-fun plus :: "aexp \<Rightarrow> aexp \<Rightarrow> aexp" where
-"plus (N i1 ) (N i2 ) = N (i1 + i2 )" |
-"plus (N i) a = (if i = 0 then a else Plus (N i) a)" |
-"plus a (N i) = (if i = 0 then a else Plus a (N i))" |
-"plus a1 a2 = Plus a1 a2 "
-
-lemma aval_plus: "aval (plus a1 a2 ) s = aval a1  s + aval a2 s"
-  by( induction a1 rule: plus.induct , simp_all)
-
-fun asimp :: "aexp \<Rightarrow> aexp" where
-"asimp (N n) = N n" |
-"asimp (V x ) = V x" |
-"asimp (Plus a1 a2 ) = plus (asimp a1) (asimp a2 )"
-
-lemma asimp1 : "aval (asimp a) s = aval a s"
-  by (induction a rule: asimp.induct , simp_all add: aval_plus)
+lemma asimp_const_Plus_not_both_N: 
+  assumes "\<not> (\<exists>n1 n2. asimp_const v1 = N n1 \<and> asimp_const v2 = N n2)"
+  shows "asimp_const (Plus v1 v2) =  Plus (asimp_const v1) (asimp_const v2)"
+  print_facts
+ *)
 
 
-(* 
-Exercise 3.1. To show that asimp_const really folds all subexpressions of
-the form Plus (N i ) (N j ), 
-define a function optimal :: aexp \<Rightarrow> bool that
-checks that its argument does not contain a subexpression 
-of the form Plus (N i ) (N j ). 
-Then prove optimal (asimp_const a).
-*)
 
-(* 
-bothNumbers is a helper routine because cannot pattern match on 
-right hand side of optimal (Plus a1 a2) = if a1 = (N i) & a2 = (N j) then False ...
-so we wrote bothNumbers hopefully get us over this hurdle
-*)
-fun bothNumbers :: "aexp \<Rightarrow> aexp \<Rightarrow> bool" where 
-"bothNumbers (N _)(N _) = True"
-| "bothNumbers _ _ = False" 
-
-fun optimal :: "aexp \<Rightarrow> bool" where
-"optimal (N n)  = True" |
-"optimal (V x ) = True" |
-"optimal (Plus a1 a2) = (if bothNumbers a1 a2 then False 
-                       else (optimal a1) & (optimal a2))"
-
-(* & and \<and> seem to be logically equivalent *)
-lemma and1 : " (P & Q) = (P \<and> Q) "
-  by simp
-  
-
-lemma "optimal (asimp_const a)"
-proof(induction a)
-  case (N x)
-  then show ?case by simp
+lemma asimp_const_Plus_not_both_N:
+  assumes H:
+    "\<not> (\<exists>n1 n2.
+        asimp_const v1 = N n1 \<and>
+        asimp_const v2 = N n2)"
+  shows
+    "asimp_const (Plus v1 v2) =
+     Plus (asimp_const v1) (asimp_const v2)"
+proof (cases "asimp_const v1")
+  case (N x1)
+  then show ?thesis 
+   proof (cases "asimp_const v2")
+     case (N x1)
+     then show ?thesis by simp
+   next
+     case (V x2)
+     then show ?thesis by simp
+   next
+     case (Plus x31 x32)
+     then show ?thesis by simp
+   qed
 next
-  case (V x)
-  then show ?case by simp
+  case (V x2)
+  then show ?thesis 
+   proof (cases "asimp_const v2")
+     case (N x1)
+     then show ?thesis by simp
+   next
+     case (V x2)
+     then show ?thesis by simp
+   next
+     case (Plus x31 x32)
+     then show ?thesis by simp
+   qed
 next
-  case (Plus a1 a2)
-  then show ?case by (auto split: aexp.splits) 
+  case (Plus x31 x32)
+  then show ?thesis 
+   proof (cases "asimp_const v2")
+     case (N x2)
+     then show ?thesis by simp
+   next
+     case (V x2)
+     then show ?thesis by simp
+   next
+     case (Plus x33 x34)
+     then show ?thesis by simp
+   qed
 qed
 
 
-(* 
-Exercise 3.2. In this exercise we verify constant folding for aexp where we
-sum up all constants, even if they are not next to each other. 
-For example, Plus (N 1) (Plus (V x ) (N 2)) becomes Plus (V x ) (N 3). 
-This goes beyond asimp.
-Define a function full_asimp :: aexp \<Rightarrow> aexp that sums up all constants and
-prove its correctness: aval (full_asimp a) s = aval a s.
+  case (N n1)
+  then show ?thesis
+  proof (cases "asimp_const v2")
+    case (N n2)
+    have False
+      using H
+      using \<open>asimp_const v1 = N n1\<close>
+      using \<open>asimp_const v2 = N n2\<close>
+      by blast
+    then show ?thesis
+      by blast
+  next
+    case V
+    then show ?thesis
+    proof (cases "asimp_const v2")
+      case (N x1)
+      then show ?thesis sorry
+    next
+      case (V x2)
+      then show ?thesis sorry
+    next
+      case (Plus x31 x32)
+      then show ?thesis sorry
+    qed      
+  next
+    case Plus
+    then show ?thesis 
+    proof (cases "asimp_const v2")
+      case (N x1)
+      then show ?thesis sorry
+    next
+      case (V x2)
+      then show ?thesis sorry
+    next
+      case (Plus x31 x32)
+      then show ?thesis sorry
+    qed
+  qed
+qed
+
+
+(*
+proof - 
+  assume H : "\<not> (\<exists>n1 n2. asimp_const v1 = N n1 \<and> asimp_const v2 = N n2)"  
+  sorry
+qed
 *)
 
-(* has constants (N i) *)
-fun hasN :: "aexp \<Rightarrow> bool" where
-"hasN (N _) = True"
-| "hasN (V _) = False" 
-| "hasN (Plus a b) = (hasN a \<or> hasN b)" 
-
-fun totN :: "aexp \<Rightarrow> int" where 
-"totN (N i) = i"
-| "totN (V _) = 0"
-| "totN (Plus a b) = (totN a) + (totN b)"
-
-fun simpAdd :: "aexp \<Rightarrow> aexp \<Rightarrow> aexp" where
-"simpAdd (N i)(N j) = N (i+j)" 
-| "simpAdd _ _ = N 0" (* dummy case ? *)
-
-fun isNum :: "aexp \<Rightarrow> bool" where
-"isNum (N _) = True"
-| "isNum _ = False" 
-
-(* *)
-fun lowN :: "aexp \<Rightarrow> aexp" where
-"lowN (N i) = N i"
-| "lowN (V x) = V x"
-| "lowN (Plus a b) = (if isNum a then b else 
-                          (if isNum b then a
-                           else (let sa = lowN a ;
-                                     sb = lowN b in 
-                               Plus sa sb)))"
-
-value "lowN (N 3)"
-value "lowN (Plus (N 3)(N 4))"
-
-
-fun full_asimp :: "aexp \<Rightarrow> aexp" where
-"full_asimp (N n)  = N n" |
-"full_asimp (V x ) = V x" |
-"full_asimp (Plus a1 a2 ) = (let s1 = full_asimp a1 ; 
-                                 s2 = full_asimp a2 in
-                           if bothNumbers s1 s2 then simpAdd s1 s2
-                           else Plus s1 s2)"
-
-
+(*
+    "asimp_const (Plus v1 v2) =  Plus (asimp_const v1) (asimp_const v2)"
+  sorry
 *)
+
+
+
+lemma asimp_const4 : "aval (asimp_const v) s = aval v s"
+proof (induction v)
+  case (N x)  
+  then show ?case 
+  proof -     (* checked *)
+    have "aval (asimp_const (N x)) s = aval (N x) s" 
+      unfolding asimp_const.simps 
+      by (rule refl)     
+     then show ?case .    
+    qed        (*ok*)
+ next
+  case (V x)   (* ok *)
+  then show ?case 
+  proof -     (* checked - note dash after proof >>> - <<< *)
+  have "aval (asimp_const (V x)) s = aval (V x) s" 
+      unfolding asimp_const.simps 
+      by (rule refl)     
+    then show ?case .  
+  qed         (* checked - note dot after ?case >>> . << *)
+ next
+  case (Plus v1 v2)
+  then show ?case 
+  proof - 
+
+  (* this is really a new one - consider *)
+  consider (BothN) n1 n2 where "asimp_const v1 = N n1" "asimp_const v2 = N n2"
+  | (NotBothN) "\<not> (\<exists> n1 n2. asimp_const v1 = N n1 \<and> asimp_const v2 = N n2)"
+   by blast
+
+    then show ?case
+    proof cases
+      case BothN
+      then show ?thesis 
+      proof - 
+        have h1: "asimp_const v1 = N n1" by (rule BothN)
+        have h2: "asimp_const v2 = N n2" by (rule BothN)
+        have h3: "asimp_const (Plus v1 v2) = N (n1 + n2)"  using h1 h2  by simp
+        then show ?thesis using h1 h2 h3 Plus.IH by simp
+      qed
+    next
+      case NotBothN
+      then show ?thesis    
+        using NotBothN asimp_const_Plus_not_both_N by simp
+    qed
+  qed
+qed
+
 
 (* end of Chapter3 *)
 end
