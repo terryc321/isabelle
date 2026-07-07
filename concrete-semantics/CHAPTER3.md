@@ -66,7 +66,7 @@ addition. The following examples illustrate the intended correspondence:
 It is important to understand that so far we have only defined syntax, not
 semantics! Although the binary operation is called Plus, this is merely a
 suggestive name and does not imply that it behaves like addition. For example,
-*Plus (N 0) (N 0) \notequal N 0*, although you may think of them as semantically
+*Plus (N 0) (N 0) ≠ N 0*, although you may think of them as semantically
 equivalent — but syntactically they are not.
 Datatype *aexp* is intentionally minimal to let us concentrate on the essentials. Further operators can be added as desired. However, as we shall discuss
 below, not all operators are as well behaved as addition.
