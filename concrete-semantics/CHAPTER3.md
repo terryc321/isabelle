@@ -13,7 +13,7 @@ optimizers and compiler!
 
 ## 3.1 Arithmetic Expressions
 
-3.1.1 Syntax
+### 3.1.1 Syntax
 
 Programming languages have both a concrete and an abstract syntax. Concrete syntax means strings. For example, "a + 5 * b" is an arithmetic expression given as a string. The concrete syntax of a language is usually defined
 by a context-free grammar. The expression "a + 5 * b" can also be viewed
@@ -42,11 +42,86 @@ datatype aexp = N int | V vname | Plus aexp aexp
 
 where *int* is the predefined type of integers and vname stands for variable
 name. Isabelle strings require two single quotes on both ends, for example
-00
- 0 0abc . The intended meaning of the three constructors is as follows: N rep-
-resents numbers, i.e., constants, V represents variables, and Plus represents
+``` ''abc'' ```. The intended meaning of the three constructors is as follows: N represents numbers, i.e., constants, V represents variables, and Plus represents
 addition. The following examples illustrate the intended correspondence:
 
+todo fix me table
+
+|Concrete | Abstract|
+---------------------
+| 5 | N 5|
+| x | V ''x'' |
+| x+ y | Plus (V ''x'') (V ''y'') |
+|2 + (z + 3) | Plus (N 2) (Plus (V ''z'') (N 3)) |
+
+It is important to understand that so far we have only defined syntax, not
+semantics! Although the binary operation is called Plus, this is merely a
+suggestive name and does not imply that it behaves like addition. For example,
+*Plus (N 0) (N 0) \notequal N 0*, although you may think of them as semantically
+equivalent — but syntactically they are not.
+Datatype *aexp* is intentionally minimal to let us concentrate on the essentials. Further operators can be added as desired. However, as we shall discuss
+below, not all operators are as well behaved as addition.
+
+### 3.1.2 Semantics
+
+The semantics, or meaning of an expression, is its value. But what is the value
+of x+1? The value of an expression with variables depends on the values of its
+variables. The value of all variables is recorded in the (program) state. The
+state is a function from variable names to values.
+
+```
+type_synonym val = int
+type_synonym state = vname ⇒ val
+```
+
+In our little toy language, the only values are integers.
+The value of an arithmetic expression is computed like this:
+
+```
+fun aval :: "aexp ⇒ state ⇒ val" where
+"aval (N n) s = n" |
+"aval (V x ) s = s x" |
+"aval (Plus a 1 a 2 ) s = aval a 1 s + aval a 2 s"
+```
+
+Function aval carries around a state and is defined by recursion over the form
+of the expression. Numbers evaluate to themselves, variables to their value in
+the state, and addition is evaluated recursively. Here is a simple example:
+
+```isabelle/hol
+value "aval (Plus (N 3) (V 0 0x 0 0)) (λx . 0)"
+```
+
+returns 3. However, we would like to be able to write down more interesting
+states than (λx . 0 ) easily. This is where function update comes in.
+
+To update the state, that is, change the value of some variable name, the
+generic function update notation f (a := b) is used: the result is the same as
+f, except that it maps a to b:
+
+```
+f (a := b) = (λx . if x = a then b else f x )
+```
+
+This operator allows us to write down concrete states in a readable fashion.
+Starting from the state that is 0 everywhere, we can update it to map certain variables to given values. For example, 
+
+```((λx . 0) ( ''x'' := 7)) ( ''y'' := 3) ```
+maps ''x'' to 7, ''y'' to 3 and all other variable names to 0. Below we employ the
+following more compact notation
+
+```
+< ''x'' := 7 , ''y'' := 3 >
+```
+which works for any number of variables, even for none: <> is syntactic sugar
+for (λx . 0).
+It would be easy to add subtraction and multiplication to *aexp* and extend
+*aval* accordingly. However, not all operators are as well behaved: division by
+zero raises an exception and C’s ++ changes the state. Neither exceptions nor
+side effects can be supported by an evaluation function of the simple type
+aexp ⇒ state ⇒ val; the return type has to be more complicated.
+
+### 3.1.3 Constant Folding
 
 ```
 fun asimp_const :: "aexp ⇒ aexp" where
