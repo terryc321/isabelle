@@ -15,9 +15,7 @@ optimizers and compiler!
 
 3.1.1 Syntax
 
-Programming languages have both a concrete and an abstract syntax. Con-
-crete syntax means strings. For example, "a + 5 * b" is an arithmetic ex-
-pression given as a string. The concrete syntax of a language is usually defined
+Programming languages have both a concrete and an abstract syntax. Concrete syntax means strings. For example, "a + 5 * b" is an arithmetic expression given as a string. The concrete syntax of a language is usually defined
 by a context-free grammar. The expression "a + 5 * b" can also be viewed
 as the following tree:
 
@@ -37,7 +35,18 @@ all along. More precisely, these terms are over some datatype that defines the
 abstract syntax of the language. Our little language of arithmetic expressions
 is defined by the datatype aexp:
 
-## l
+```
+type_synonym vname = string
+datatype aexp = N int | V vname | Plus aexp aexp
+```
+
+where *int* is the predefined type of integers and vname stands for variable
+name. Isabelle strings require two single quotes on both ends, for example
+00
+ 0 0abc . The intended meaning of the three constructors is as follows: N rep-
+resents numbers, i.e., constants, V represents variables, and Plus represents
+addition. The following examples illustrate the intended correspondence:
+
 
 ```
 fun asimp_const :: "aexp ⇒ aexp" where
