@@ -203,15 +203,15 @@ the Plus a1 a2 case, the induction hypotheses are
 aval (asimp_const a1) s = aval a1 s
 aval (asimp_const a2) s = aval a2 s
 
-If asimp_const a i = N n i for i =1,2, then aval (asimp_const (Plus a 1 a 2 )) s
-= aval (N (n 1 +n 2)) s = n 1+n 2
-= aval (asimp_const a 1 ) s + aval (asimp_const a 2 ) s
-= aval (Plus a 1 a 2 ) s.
+If asimp_const ai = N ni for i = 1,2, then aval (asimp_const (Plus a1 a2)) s
+= aval (N (n1+n2)) s = n1+n 2
+= aval (asimp_const a1) s + aval (asimp_const a2) s
+= aval (Plus a1 a2) s.
 Otherwise
-aval (asimp_const (Plus a 1 a 2 )) s
-= aval (Plus (asimp_const a 1 ) (asimp_const a 2 )) s
-= aval (asimp_const a 1 ) s + aval (asimp_const a 2 ) s
-= aval (Plus a 1 a 2 ) s.
+aval (asimp_const (Plus a1 a2)) s
+= aval (Plus (asimp_const a1) (asimp_const a2)) s
+= aval (asimp_const a1) s + aval (asimp_const a2) s
+= aval (Plus a1 a2) s.
 ```
 
 This is rather a long proof for such a simple lemma, and boring to boot. In
@@ -250,7 +250,7 @@ fun plus :: "aexp ⇒ aexp ⇒ aexp" where
 It behaves like Plus under evaluation:
 
 ```
-lemma aval_plus: "aval (plus a1 a2 ) s = aval a1 s + aval a2 s"
+lemma aval_plus: "aval (plus a1 a2) s = aval a1 s + aval a2 s"
 ```
 
 the proof can be found here [aval_plus](#aval-plus-proof) .
@@ -264,8 +264,8 @@ throughout an expression:
 ```
 fun asimp :: "aexp ⇒ aexp" where
 "asimp (N n) = N n" |
-"asimp (V x ) = V x" |
-"asimp (Plus a 1 a 2 ) = plus (asimp a 1) (asimp a 2 )"
+"asimp (V x) = V x" |
+"asimp (Plus a1 a2 ) = plus (asimp a1) (asimp a2)"
 ```
 
 Correctness is expressed exactly as for asimp_const :
@@ -273,12 +273,183 @@ Correctness is expressed exactly as for asimp_const :
 ```
 lemma "aval (asimp a) s = aval a s"
 ```
+the proof can be found here [aval_asimp](#aval-asimp-proof) .
 
-The proof is by structural induction on a; the Plus case follows with the help
-of Lemma aval_plus.
+The proof is by structural induction on a; the Plus case follows with the help of Lemma aval_plus.
 
-- [ ] todo - check proofs work so far in isabelle hol 
 
+## 3.2 Boolean Expressions
+
+In keeping with our minimalist philosophy, our boolean expressions contain
+only the bare essentials: boolean constants, negation, conjunction and comparison of arithmetic expressions for less-than:
+
+```
+datatype bexp = Bc bool | Not bexp | And bexp bexp | Less aexp aexp
+```
+
+Note that there are no boolean variables in this language. Other operators
+like disjunction and equality are easily expressed in terms of the basic ones.
+Evaluation of boolean expressions is again by recursion over the abstract
+syntax. In the Less case, we switch to aval:
+
+```
+fun bval :: "bexp ⇒ state ⇒ bool" where
+"bval (Bc v) s = v" |
+"bval (Not b) s = (¬ bval b s)" |
+"bval (And b1 b2) s = (bval b1 s ∧ bval b2 s)" |
+"bval (Less a1 a2) s = (aval a1 s < aval a2 s)"
+```
+
+### 3.2.1 Constant Folding
+
+Constant folding, including the elimination of True and False in compound
+expressions, works for bexp like it does for aexp: define optimizing versions
+of the constructors
+
+```
+fun not :: "bexp ⇒ bexp" where
+"not (Bc True) = Bc False" |
+"not (Bc False) = Bc True" |
+"not b = Not b"
+```
+
+```
+fun "and" :: "bexp ⇒ bexp ⇒ bexp" where
+"and (Bc True) b = b" |
+"and b (Bc True) = b" |
+"and (Bc False) b = Bc False" |
+"and b (Bc False) = Bc False" |
+"and b1 b2 = And b1 b2"
+```
+
+```
+fun less :: "aexp ⇒ aexp ⇒ bexp" where
+"less (N n1) (N n2) = Bc(n1 < n2)" |
+"less a1 a2 = Less a1 a2 "
+```
+and replace the constructors in a bottom-up manner:
+
+```
+fun bsimp :: "bexp ⇒ bexp" where
+"bsimp (Bc v ) = Bc v" |
+"bsimp (Not b) = not (bsimp b)" |
+"bsimp (And b1 b2) = and (bsimp b1) (bsimp b2)" |
+"bsimp (Less a1 a2 ) = less (asimp a1) (asimp a2)"
+```
+
+Note that in the Less case we must switch from bsimp to asimp.
+
+
+
+## Footnotes
+
+- [ ] todo find video link 
+
+[^type_synonym]: type synonym is to make datatype appear identical but at some time later the user can change alter it which may cause the system confusion 
+see laurence paulson youtube video 
+
+- [ ] video course youtube "Interactive Formal Verification"
+
+course material online at [ ](https://www.cl.cam.ac.uk/2122/L21/)
+
+youtube video series online [Interactive Formal Verification](https://youtu.be/5I5XuBzpmwQ?si=CkIe034cWmpgKUXB)
+
+## Proofs 
+
+### aval plus proof
+
+```
+(* older tactic language *)
+lemma aval_plus2: "aval (plus a1 a2 ) s = aval a1 s + aval a2 s"
+  by (induction a1 a2 arbitrary: s rule: plus.induct , simp_all) 
+
+(* modern isar proof *)
+lemma aval_plus: "aval (plus a1 a2 ) s = aval a1 s + aval a2 s"
+proof (induction a1 a2 arbitrary: s rule: plus.induct) 
+  case (1 i1 i2)
+  then show ?case by simp
+next
+  case ("2_1" i v)
+  then show ?case by simp
+next
+  case ("2_2" i v va)
+  then show ?case by simp
+next
+  case ("3_1" v i)
+  then show ?case by simp
+next
+  case ("3_2" v va i)
+  then show ?case by simp
+next
+  case ("4_1" v va)
+  then show ?case by simp
+next
+  case ("4_2" v va vb)
+  then show ?case by simp
+next
+  case ("4_3" v va vb)
+  then show ?case by simp
+next
+  case ("4_4" v va vb vc)
+  then show ?case by simp
+next
+  case ("4_5" va v)
+  then show ?case by simp
+next
+  case ("4_6" va vb v)
+  then show ?case by simp
+next
+  case ("4_7" vb v va)
+  then show ?case by simp
+next
+  case ("4_8" vb vc v va)
+  then show ?case by simp
+qed
+```
+
+### aval simp proof
+
+```
+lemma "aval (asimp a) s = aval a s"
+proof (induction a)
+  case (N x)
+  then show ?case by simp
+next
+  case (V x)
+  then show ?case by simp
+next
+  case (Plus a1 a2)
+  then show ?case using aval_plus by simp
+qed
+```
+
+
+## Novelties
+
+## Finite map syntax 
+
+technical word finite map allows lookup variable to a value 
+
+```
+(* sometimes a type hint is needed - in this case - int - 
+so isabelle knows what type it should return *)
+value "(λ x . 0 :: int) ''z''"
+value "(λ x . 0 :: int) 4"
+value "((λ x . 0) (''x'' := 4 )) ''x'' :: int"
+value "((λ x . 0) (''x'' := 1 , ''y'' := 2)) ''x'' :: int" (* ⟹ 1 :: int *)
+value "((λ x . 0) (''x'' := 1 , ''y'' := 2)) ''y'' :: int" (* ⟹ 2 :: int *)
+value "((λ x . 0) (''x'' := 1 , ''y'' := 2)) ''z'' :: int" (* ⟹ 0 :: int *)
+
+(* here we can check by using the proof infrastructure *)
+lemma "(((λ x . 0) (''x'' := 1 , ''y'' := 2)) ''x'') = 1" 
+  by simp
+lemma "(((λ x . 0) (''x'' := 1 , ''y'' := 2)) ''y'') = 2" 
+  by simp
+lemma "(((λ x . 0) (''x'' := 1 , ''y'' := 2)) ''z'') = 0" 
+  by simp
+```
+
+## Exercises 
 
 ## Exercises
 
@@ -344,105 +515,57 @@ is inlined by substituting the converted form of e 1 for x in the converted form
 of e 2 . See Exercise 3.3 for more on substitution. Prove that inline is correct
 w.r.t. evaluation.
 
+Exercises
 
-## 3.2 Boolean Expressions
+### Exercise 3.7. 
 
-
-
-
-## Footnotes
-
-- [ ] todo find video link 
-
-[^type_synonym]: type synonym is to make datatype appear identical but at some time later the user can change alter it which may cause the system confusion 
-see laurence paulson youtube video 
-
-- [ ] video course youtube "Interactive Formal Verification"
-
-course material online at [ ](https://www.cl.cam.ac.uk/2122/L21/)
-
-youtube video series online [Interactive Formal Verification](https://youtu.be/5I5XuBzpmwQ?si=CkIe034cWmpgKUXB)
-
-## Proofs 
-
-### aval plus proof
-
-[^aval_plus]: 
+Define functions 
+```
+Eq, Le :: aexp ⇒ aexp ⇒ bexp and prove
+bval (Eq a 1 a 2 ) s = (aval a 1 s = aval a 2 s) and bval (Le a 1 a 2 ) s =
+(aval a 1 s ⩽ aval a 2 s).
 ```
 
-(* older tactic language *)
-lemma aval_plus2: "aval (plus a1 a2 ) s = aval a1 s + aval a2 s"
-  by (induction a1 a2 arbitrary: s rule: plus.induct , simp_all) 
+### Exercise 3.8. Consider an alternative type of boolean expressions featuring
 
-(* modern isar proof *)
-lemma aval_plus: "aval (plus a1 a2 ) s = aval a1 s + aval a2 s"
-proof (induction a1 a2 arbitrary: s rule: plus.induct) 
-  case (1 i1 i2)
-  then show ?case by simp
-next
-  case ("2_1" i v)
-  then show ?case by simp
-next
-  case ("2_2" i v va)
-  then show ?case by simp
-next
-  case ("3_1" v i)
-  then show ?case by simp
-next
-  case ("3_2" v va i)
-  then show ?case by simp
-next
-  case ("4_1" v va)
-  then show ?case by simp
-next
-  case ("4_2" v va vb)
-  then show ?case by simp
-next
-  case ("4_3" v va vb)
-  then show ?case by simp
-next
-  case ("4_4" v va vb vc)
-  then show ?case by simp
-next
-  case ("4_5" va v)
-  then show ?case by simp
-next
-  case ("4_6" va vb v)
-  then show ?case by simp
-next
-  case ("4_7" vb v va)
-  then show ?case by simp
-next
-  case ("4_8" vb vc v va)
-  then show ?case by simp
-qed
+a conditional:
 
 ```
-
-## Novelties
-
-## Finite map syntax 
-
-technical word finite map allows lookup variable to a value 
-
-```
-(* sometimes a type hint is needed - in this case - int - 
-so isabelle knows what type it should return *)
-value "(λ x . 0 :: int) ''z''"
-value "(λ x . 0 :: int) 4"
-value "((λ x . 0) (''x'' := 4 )) ''x'' :: int"
-value "((λ x . 0) (''x'' := 1 , ''y'' := 2)) ''x'' :: int" (* ⟹ 1 :: int *)
-value "((λ x . 0) (''x'' := 1 , ''y'' := 2)) ''y'' :: int" (* ⟹ 2 :: int *)
-value "((λ x . 0) (''x'' := 1 , ''y'' := 2)) ''z'' :: int" (* ⟹ 0 :: int *)
-
-(* here we can check by using the proof infrastructure *)
-lemma "(((λ x . 0) (''x'' := 1 , ''y'' := 2)) ''x'') = 1" 
-  by simp
-lemma "(((λ x . 0) (''x'' := 1 , ''y'' := 2)) ''y'') = 2" 
-  by simp
-lemma "(((λ x . 0) (''x'' := 1 , ''y'' := 2)) ''z'') = 0" 
-  by simp
+datatype ifexp = Bc2 bool | If ifexp ifexp ifexp | Less2 aexp aexp
 ```
 
+First define an evaluation function ifval :: ifexp ⇒ state ⇒ bool analogously
+to bval. Then define two functions b2ifexp :: bexp ⇒ ifexp and if2bexp ::
+ifexp ⇒ bexp and prove their correctness, i.e., that they preserve the value
+of an expression.
 
+### Exercise 3.9. Define a new type of purely boolean expressions
+
+```
+datatype pbexp =
+VAR vname | NOT pbexp | AND pbexp pbexp | OR pbexp pbexp
+where variables range over values of type bool:
+
+fun pbval :: "pbexp ⇒ (vname ⇒ bool) ⇒ bool" where
+"pbval (VAR x ) s = s x" |
+"pbval (NOT b) s = (¬ pbval b s)" |
+"pbval (AND b 1 b 2 ) s = (pbval b 1 s ∧ pbval b 2 s)" |
+"pbval (OR b 1 b 2 ) s = (pbval b 1 s ∨ pbval b 2 s)"
+```
+
+Define a function is_nnf :: pbexp ⇒ bool that checks whether a boolean
+expression is in NNF (negation normal form), i.e., if NOT is only applied
+directly to VARs. Also define a function nnf :: pbexp ⇒ pbexp that converts
+a pbexp into NNF by pushing NOT inwards as much as possible. Prove that
+nnf preserves the value (pbval (nnf b) s = pbval b s) and returns an NNF
+(is_nnf (nnf b)).
+
+An expression is in DNF (disjunctive normal form) if it is in NNF and if
+no OR occurs below an AND. Define a corresponding test is_dnf :: pbexp ⇒
+bool. An NNF can be converted into a DNF in a bottom-up manner. The crit-
+ical case is the conversion of AND b1 b 2 . Having converted b 1 and b 2 , apply
+distributivity of AND over OR. Define a conversion function dnf_of_nnf ::
+pbexp ⇒ pbexp from NNF to DNF. Prove that your function preserves the
+value (pbval (dnf_of_nnf b) s = pbval b s) and converts an NNF into a
+DNF (is_nnf b =⇒ is_dnf (dnf_of_nnf b)).
 
