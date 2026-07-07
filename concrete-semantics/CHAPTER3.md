@@ -200,7 +200,9 @@ lemma "aval (asimp_const a) s = aval a s"
 The proof is by induction on a. The two base cases N and V are trivial. In
 the Plus a1 a2 case, the induction hypotheses are 
 ```
-aval (asimp_const ai) s = aval a i s for i =1,2. 
+aval (asimp_const a1) s = aval a1 s
+aval (asimp_const a2) s = aval a2 s
+
 
 If asimp_const a i = N n i for i =1,2, then aval (asimp_const (Plus a 1 a 2 )) s
 = aval (N (n 1 +n 2)) s = n 1+n 2
