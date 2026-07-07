@@ -83,8 +83,6 @@ type_synonym val = int
 type_synonym state = vname ⇒ val
 ```
 
-[^typesynonym]: 
-
 In our little toy language, the only values are integers.
 The value of an arithmetic expression is computed like this:
 
@@ -170,29 +168,6 @@ asimp_const does not change the semantics, i.e., the value of its argument:
 lemma "aval (asimp_const a) s = aval a s"
 ```
 
-### 3.1.2.b Examples of finite map 
-
-technical word finite map allows lookup variable to a value 
-
-```
-(* sometimes a type hint is needed - in this case - int - so isabelle knows what type it should 
-return *)
-value "(λ x . 0 :: int) ''z''"
-value "(λ x . 0 :: int) 4"
-value "((λ x . 0) (''x'' := 4 )) ''x'' :: int"
-value "((λ x . 0) (''x'' := 1 , ''y'' := 2)) ''x'' :: int" (* ⟹ 1 :: int *)
-value "((λ x . 0) (''x'' := 1 , ''y'' := 2)) ''y'' :: int" (* ⟹ 2 :: int *)
-value "((λ x . 0) (''x'' := 1 , ''y'' := 2)) ''z'' :: int" (* ⟹ 0 :: int *)
-
-(* here we can check by using the proof infrastructure *)
-lemma "(((λ x . 0) (''x'' := 1 , ''y'' := 2)) ''x'') = 1" 
-  by simp
-lemma "(((λ x . 0) (''x'' := 1 , ''y'' := 2)) ''y'') = 2" 
-  by simp
-lemma "(((λ x . 0) (''x'' := 1 , ''y'' := 2)) ''z'') = 0" 
-  by simp
-```
-
 It would be easy to add subtraction and multiplication to *aexp* and extend
 *aval* accordingly. However, not all operators are as well behaved: division by
 zero raises an exception and C’s ++ changes the state. Neither exceptions nor
@@ -266,17 +241,19 @@ and we define an optimizing version of Plus:
 
 ```
 fun plus :: "aexp ⇒ aexp ⇒ aexp" where
-"plus (N i 1 ) (N i 2 ) = N (i 1+i 2 )" |
-"plus (N i ) a = (if i =0 then a else Plus (N i ) a)" |
-"plus a (N i ) = (if i =0 then a else Plus a (N i ))" |
-"plus a 1 a 2 = Plus a 1 a 2 "
+"plus (N i1) (N i2)  = N (i1 + i2)" |
+"plus (N i)  a       = (if i = 0 then a else Plus (N i) a)" |
+"plus a      (N i)   = (if i = 0 then a else Plus a (N i))" |
+"plus a1     a2      = Plus a1 a2 "
 ```
 
 It behaves like Plus under evaluation:
 
 ```
-lemma aval_plus: "aval (plus a1 a2 ) s = aval a 1 s + aval a 2 s"
+lemma aval_plus: "aval (plus a1 a2 ) s = aval a1 s + aval a2 s"
 ```
+
+the proof can be found here [^aval_plus].
 
 The proof is by induction on a1 and a2 using the computation induction rule
 for plus (plus.induct ). 
@@ -373,8 +350,7 @@ w.r.t. evaluation.
 
 
 
-
-# Footnotes
+## Footnotes
 
 - [ ] todo find video link 
 
@@ -387,6 +363,84 @@ course material online at [ ](https://www.cl.cam.ac.uk/2122/L21/)
 
 youtube video series online [Interactive Formal Verification](https://youtu.be/5I5XuBzpmwQ?si=CkIe034cWmpgKUXB)
 
+## Proofs 
+
+[^avalplus]: 
+```
+
+(* older tactic language *)
+lemma aval_plus2: "aval (plus a1 a2 ) s = aval a1 s + aval a2 s"
+  by (induction a1 a2 arbitrary: s rule: plus.induct , simp_all) 
+
+(* modern isar proof *)
+lemma aval_plus: "aval (plus a1 a2 ) s = aval a1 s + aval a2 s"
+proof (induction a1 a2 arbitrary: s rule: plus.induct) 
+  case (1 i1 i2)
+  then show ?case by simp
+next
+  case ("2_1" i v)
+  then show ?case by simp
+next
+  case ("2_2" i v va)
+  then show ?case by simp
+next
+  case ("3_1" v i)
+  then show ?case by simp
+next
+  case ("3_2" v va i)
+  then show ?case by simp
+next
+  case ("4_1" v va)
+  then show ?case by simp
+next
+  case ("4_2" v va vb)
+  then show ?case by simp
+next
+  case ("4_3" v va vb)
+  then show ?case by simp
+next
+  case ("4_4" v va vb vc)
+  then show ?case by simp
+next
+  case ("4_5" va v)
+  then show ?case by simp
+next
+  case ("4_6" va vb v)
+  then show ?case by simp
+next
+  case ("4_7" vb v va)
+  then show ?case by simp
+next
+  case ("4_8" vb vc v va)
+  then show ?case by simp
+qed
+
+```
+
+## Novelties
+
+## Finite map syntax 
+
+technical word finite map allows lookup variable to a value 
+
+```
+(* sometimes a type hint is needed - in this case - int - 
+so isabelle knows what type it should return *)
+value "(λ x . 0 :: int) ''z''"
+value "(λ x . 0 :: int) 4"
+value "((λ x . 0) (''x'' := 4 )) ''x'' :: int"
+value "((λ x . 0) (''x'' := 1 , ''y'' := 2)) ''x'' :: int" (* ⟹ 1 :: int *)
+value "((λ x . 0) (''x'' := 1 , ''y'' := 2)) ''y'' :: int" (* ⟹ 2 :: int *)
+value "((λ x . 0) (''x'' := 1 , ''y'' := 2)) ''z'' :: int" (* ⟹ 0 :: int *)
+
+(* here we can check by using the proof infrastructure *)
+lemma "(((λ x . 0) (''x'' := 1 , ''y'' := 2)) ''x'') = 1" 
+  by simp
+lemma "(((λ x . 0) (''x'' := 1 , ''y'' := 2)) ''y'') = 2" 
+  by simp
+lemma "(((λ x . 0) (''x'' := 1 , ''y'' := 2)) ''z'') = 0" 
+  by simp
+```
 
 
 
