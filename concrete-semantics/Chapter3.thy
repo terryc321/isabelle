@@ -65,8 +65,10 @@ next
   then show ?case by simp
 next
   case (Plus v1 v2)
-  then show ?case by (auto split: aexp.splits)
-qed
+  then show ?case 
+   by (auto split: aexp.splits)
+ qed
+
 
 thm TrueI
 (* thm HOL.Ex  *)
@@ -169,7 +171,7 @@ lemma asimp_const_Plus_not_both_N:
  *)
 
 
-
+(*
 lemma asimp_const_Plus_not_both_N:
   assumes H:
     "\<not> (\<exists>n1 n2.
@@ -259,6 +261,7 @@ qed
     qed
   qed
 qed
+*)
 
 
 (*
@@ -274,7 +277,7 @@ qed
 *)
 
 
-
+(*
 lemma asimp_const4 : "aval (asimp_const v) s = aval v s"
 proof (induction v)
   case (N x)  
@@ -321,6 +324,7 @@ proof (induction v)
     qed
   qed
 qed
+*)
 
 
 (* end of Chapter3 *)
