@@ -891,7 +891,84 @@ qed
 (*i guess we got lucky here as case splitting did not lead to infinite loop *)
 
 
+------------------------------------------------------------------------
 
+    (* bring facts to front centre by giving them names *)
+    from Plus.IH(1) have IH1 : "aval (asimp_const v1) s = aval v1 s" by assumption
+    from Plus.IH(2) have IH2 : "aval (asimp_const v2) s = aval v2 s" by assumption
+
+    (* Attach the case split directly to our outer goal 'show ?case' *)
+    show ?case
+    proof (cases "asimp_const v1" and "asimp_const v2")
+      
+      (* Case 1: Both sub-expressions simplify to constants *)
+      fix n1 n2
+      assume Case1: "asimp_const v1 = N n1" "asimp_const v2 = N n2"
+      
+      have "aval (asimp_const (Plus v1 v2)) s = aval (N (n1 + n2)) s"
+        unfolding asimp_const.simps(3) using Case1 by simp
+      also have "... = n1 + n2" by simp
+      also have "... = aval (asimp_const v1) s + aval (asimp_const v2) s" using Case1 by simp
+      also have "... = aval v1 s + aval v2 s" by (simp add: IH1 IH2)
+      also have "... = aval (Plus v1 v2) s" by simp
+      finally show ?case .
+     (* Note: use ?thesis to close a case-split branch *)
+    
+    next
+
+      (* Case 2: They do NOT both simplify to constants *)
+      fix b1 b2
+      assume Case2: "asimp_const v1 = b1" "asimp_const v2 = b2"
+                    "\<nexists>n1 n2. b1 = N n1 \<and> b2 = N n2"
+      
+      have "aval (asimp_const (Plus v1 v2)) s = aval (Plus b1 b2) s"
+        unfolding asimp_const.simps(3) using Case2 by simp
+      also have "... = aval b1 s + aval b2 s" by simp
+      also have "... = aval (asimp_const v1) s + aval (asimp_const v2) s" using Case2 by simp
+      also have "... = aval v1 s + aval v2 s" by (simp add: IH1 IH2)
+      also have "... = aval (Plus v1 v2) s" by simp
+      finally show ?thesis .
+    qed
+  qed
+qed
+
+      case Consts
+      then show ?thesis 
+      proof - 
+(* Case 1: Both sub-expressions simplify to constants *)
+      fix n1 n2
+      assume Case1: "asimp_const v1 = N n1" "asimp_const v2 = N n2"
+      
+      have "aval (asimp_const (Plus v1 v2)) s = aval (N (n1 + n2)) s"
+        unfolding asimp_const.simps(3) using Case1 by simp
+      also have "... = n1 + n2" by simp
+      also have "... = aval (asimp_const v1) s + aval (asimp_const v2) s" using Case1 by simp
+      also have "... = aval v1 s + aval v2 s" by (simp add: Plus.IH)
+      also have "... = aval (Plus v1 v2) s" by simp
+      finally show ?thesis . (* Note: use ?thesis to close a case-split branch *)
+    next
+      case Others
+      fix b1 b2
+      assume Case2: "asimp_const v1 = b1" "asimp_const v2 = b2"
+                          "\<nexists>n1 n2. b1 = N n1 \<and> b2 = N n2" 
+      show ?case .
+
+      have "aval (asimp_const (Plus v1 v2)) s = aval (Plus b1 b2) s"
+        unfolding asimp_const.simps(3) using Case2 by simp
+      also have "... = aval b1 s + aval b2 s" by simp
+      also have "... = aval (asimp_const v1) s + aval (asimp_const v2) s" using Case2 by simp
+      also have "... = aval v1 s + aval v2 s" by (simp add: IH1 IH2)
+      also have "... = aval (Plus v1 v2) s" by simp
+      finally show ?thesis .
+    qed
+
+
+---------------------------
+  (* State the variables you want to analyze *)
+    consider (Consts) n1 n2 where "asimp_const v1 = N n1" "asimp_const v2 = N n2"
+           | (Others) "\<nexists>n1 n2. asimp_const v1 = N n1 \<and> asimp_const v2 = N n2"
+      by blast (* Or use 'by cut_facts' / 'by auto' to let Isabelle confirm it covers all ground *)
+------------------------
 
 
 

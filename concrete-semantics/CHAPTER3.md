@@ -139,35 +139,6 @@ for (λx . 0).
 <> means \x . 0 
 ```
 
-### 3.1.2.b Examples of finite map 
-
-technical word finite map allows lookup variable to a value 
-
-```
-(* sometimes a type hint is needed - in this case - int - so isabelle knows what type it should 
-return *)
-value "(λ x . 0 :: int) ''z''"
-value "(λ x . 0 :: int) 4"
-value "((λ x . 0) (''x'' := 4 )) ''x'' :: int"
-value "((λ x . 0) (''x'' := 1 , ''y'' := 2)) ''x'' :: int" (* ⟹ 1 :: int *)
-value "((λ x . 0) (''x'' := 1 , ''y'' := 2)) ''y'' :: int" (* ⟹ 2 :: int *)
-value "((λ x . 0) (''x'' := 1 , ''y'' := 2)) ''z'' :: int" (* ⟹ 0 :: int *)
-
-(* here we can check by using the proof infrastructure *)
-lemma "(((λ x . 0) (''x'' := 1 , ''y'' := 2)) ''x'') = 1" 
-  by simp
-lemma "(((λ x . 0) (''x'' := 1 , ''y'' := 2)) ''y'') = 2" 
-  by simp
-lemma "(((λ x . 0) (''x'' := 1 , ''y'' := 2)) ''z'') = 0" 
-  by simp
-```
-
-It would be easy to add subtraction and multiplication to *aexp* and extend
-*aval* accordingly. However, not all operators are as well behaved: division by
-zero raises an exception and C’s ++ changes the state. Neither exceptions nor
-side effects can be supported by an evaluation function of the simple type
-aexp ⇒ state ⇒ val; the return type has to be more complicated.
-
 ### 3.1.3 Constant Folding
 
 Program optimization is a recurring theme of this book. We start with an
@@ -197,12 +168,62 @@ asimp_const does not change the semantics, i.e., the value of its argument:
 lemma "aval (asimp_const a) s = aval a s"
 ```
 
+### 3.1.2.b Examples of finite map 
+
+technical word finite map allows lookup variable to a value 
+
+```
+(* sometimes a type hint is needed - in this case - int - so isabelle knows what type it should 
+return *)
+value "(λ x . 0 :: int) ''z''"
+value "(λ x . 0 :: int) 4"
+value "((λ x . 0) (''x'' := 4 )) ''x'' :: int"
+value "((λ x . 0) (''x'' := 1 , ''y'' := 2)) ''x'' :: int" (* ⟹ 1 :: int *)
+value "((λ x . 0) (''x'' := 1 , ''y'' := 2)) ''y'' :: int" (* ⟹ 2 :: int *)
+value "((λ x . 0) (''x'' := 1 , ''y'' := 2)) ''z'' :: int" (* ⟹ 0 :: int *)
+
+(* here we can check by using the proof infrastructure *)
+lemma "(((λ x . 0) (''x'' := 1 , ''y'' := 2)) ''x'') = 1" 
+  by simp
+lemma "(((λ x . 0) (''x'' := 1 , ''y'' := 2)) ''y'') = 2" 
+  by simp
+lemma "(((λ x . 0) (''x'' := 1 , ''y'' := 2)) ''z'') = 0" 
+  by simp
+```
+
+It would be easy to add subtraction and multiplication to *aexp* and extend
+*aval* accordingly. However, not all operators are as well behaved: division by
+zero raises an exception and C’s ++ changes the state. Neither exceptions nor
+side effects can be supported by an evaluation function of the simple type
+aexp ⇒ state ⇒ val; the return type has to be more complicated.
+
+### Proofs
+
+```
+(* older tactic proof *)
+lemma asimp_const1 : "aval (asimp_const v) s = aval v s"
+  by (induction v rule: asimp_const.induct , simp_all, auto split: aexp.split)
+
+(* modern isar proof *)
+lemma asimp_const2 : "aval (asimp_const v) s = aval v s"
+proof (induction v)
+  case (N x)
+  then show ?case by simp
+next
+  case (V x)
+  then show ?case by simp
+next
+  case (Plus v1 v2) (* this is the juicy case *)
+  then show ?case by (auto split: aexp.splits)
+qed
+
+```
+
 The proof is by induction on a. The two base cases N and V are trivial. In
 the Plus a1 a2 case, the induction hypotheses are 
 ```
 aval (asimp_const a1) s = aval a1 s
 aval (asimp_const a2) s = aval a2 s
-
 
 If asimp_const a i = N n i for i =1,2, then aval (asimp_const (Plus a 1 a 2 )) s
 = aval (N (n 1 +n 2)) s = n 1+n 2
@@ -214,6 +235,8 @@ aval (asimp_const (Plus a 1 a 2 )) s
 = aval (asimp_const a 1 ) s + aval (asimp_const a 2 ) s
 = aval (Plus a 1 a 2 ) s.
 ```
+
+
 
 This is rather a long proof for such a simple lemma, and boring to boot. In
 the future we shall refrain from going through such proofs in such excessive
