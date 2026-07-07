@@ -224,6 +224,7 @@ you can look at them in the files accompanying the book. The triviality of
 the proof is confirmed by the size of the Isabelle text:
 
 ```
+lemma "aval (asimp_const a) s = aval a s"
 apply (induction a)
 apply (auto split : aexp.split )
 done
