@@ -11,6 +11,8 @@ little optimizers for them and show how to compile arithmetic expressions
 to a simple stack machine. Of course we also prove the correctness of the
 optimizers and compiler!
 
+this is my [^typesynonym] footnote 
+
 ## 3.1 Arithmetic Expressions
 
 ### 3.1.1 Syntax
@@ -73,6 +75,8 @@ state is a function from variable names to values.
 type_synonym val = int
 type_synonym state = vname ⇒ val
 ```
+
+[^typesynonym]: 
 
 In our little toy language, the only values are integers.
 The value of an arithmetic expression is computed like this:
@@ -166,4 +170,6 @@ fun asimp_const :: "aexp ⇒ aexp" where
  (N n 1 , N n 2 ) ⇒ N (n 1 +n 2 ) |
  (b 1,b 2 ) ⇒ Plus b 1 b 2 )"
 ```
+
+
 
