@@ -178,3 +178,12 @@ fun asimp_const :: "aexp ⇒ aexp" where
 [^type_synonym]: type synonym is to make datatype appear identical but at some time later the user can change alter it which may cause the system confusion 
 see laurence paulson youtube video 
 
+- [ ] video course youtube "Interactive Formal Verification"
+
+course material online at [ ](https://www.cl.cam.ac.uk/2122/L21/)
+
+youtube video series online [Interactive Formal Verification](https://youtu.be/5I5XuBzpmwQ?si=CkIe034cWmpgKUXB)
+
+
+
+
