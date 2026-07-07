@@ -45,7 +45,7 @@ name. Isabelle strings require two single quotes on both ends, for example
 ``` ''abc'' ```. The intended meaning of the three constructors is as follows: N represents numbers, i.e., constants, V represents variables, and Plus represents
 addition. The following examples illustrate the intended correspondence:
 
-todo fix me table
+- [ ] todo fix me table org mode 
 
 |Concrete | Abstract|
 ---------------------
@@ -149,6 +149,11 @@ aexp ⇒ state ⇒ val; the return type has to be more complicated.
 
 ### 3.1.3 Constant Folding
 
+Program optimization is a recurring theme of this book. We start with an
+extremely simple example, **constant folding**, i.e., the replacement of constant subexpressions by their value. It is performed routinely by compilers. For example, the expression Plus (V x ) (Plus (N 3) (N 1)) is simplified
+to Plus (V ''x'') (N 4). Function asimp_const performs constant folding
+in a bottom-up manner:
+
 ```
 fun asimp_const :: "aexp ⇒ aexp" where
 "asimp_const (N n) = N n" 
@@ -158,5 +163,4 @@ fun asimp_const :: "aexp ⇒ aexp" where
  (N n 1 , N n 2 ) ⇒ N (n 1 +n 2 ) |
  (b 1,b 2 ) ⇒ Plus b 1 b 2 )"
 ```
-
 
