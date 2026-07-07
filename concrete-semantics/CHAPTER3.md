@@ -109,12 +109,22 @@ f, except that it maps a to b:
 f (a := b) = (λx . if x = a then b else f x )
 ```
 
+```
+value "( λ z .  (if z = ''x'' then 7 else if z = ''y'' then 3 else 0 :: int)) " 
+value "( λ z .  (if z = ''x'' then 7 else if z = ''y'' then 3 else 0 :: int)) ''x'' " (* 7 *)
+value "( λ z .  (if z = ''x'' then 7 else if z = ''y'' then 3 else 0 :: int)) ''y'' " (* 3 *)
+value "( λ z .  (if z = ''x'' then 7 else if z = ''y'' then 3 else 0 :: int)) ''z'' " (* 0 *)
+```
+
 This operator allows us to write down concrete states in a readable fashion.
 Starting from the state that is 0 everywhere, we can update it to map certain variables to given values. For example, 
 
 ```((λx . 0) ( ''x'' := 7)) ( ''y'' := 3) ```
 maps ''x'' to 7, ''y'' to 3 and all other variable names to 0. Below we employ the
 following more compact notation
+
+- [ ] question - verify finite map x to 7 , y to 3 , failed to work in isabelle 2026 , 
+  but easily side stepped using 
 
 ```
 < ''x'' := 7 , ''y'' := 3 >
@@ -129,9 +139,13 @@ for (λx . 0).
 <> means \x . 0 
 ```
 
-### 3.1.2.b Examples of colon equals syntax
+### 3.1.2.b Examples of finite map 
+
+technical word finite map allows lookup variable to a value 
 
 ```
+(* sometimes a type hint is needed - in this case - int - so isabelle knows what type it should 
+return *)
 value "(λ x . 0 :: int) ''z''"
 value "(λ x . 0 :: int) 4"
 value "((λ x . 0) (''x'' := 4 )) ''x'' :: int"
@@ -139,6 +153,7 @@ value "((λ x . 0) (''x'' := 1 , ''y'' := 2)) ''x'' :: int" (* ⟹ 1 :: int *)
 value "((λ x . 0) (''x'' := 1 , ''y'' := 2)) ''y'' :: int" (* ⟹ 2 :: int *)
 value "((λ x . 0) (''x'' := 1 , ''y'' := 2)) ''z'' :: int" (* ⟹ 0 :: int *)
 
+(* here we can check by using the proof infrastructure *)
 lemma "(((λ x . 0) (''x'' := 1 , ''y'' := 2)) ''x'') = 1" 
   by simp
 lemma "(((λ x . 0) (''x'' := 1 , ''y'' := 2)) ''y'') = 2" 
@@ -172,6 +187,10 @@ fun asimp_const :: "aexp ⇒ aexp" where
  (N n 1 , N n 2 ) ⇒ N (n 1 +n 2 ) |
  (b 1,b 2 ) ⇒ Plus b 1 b 2 )"
 ```
+
+
+
+# Footnotes
 
 - [ ] todo find video link 
 
