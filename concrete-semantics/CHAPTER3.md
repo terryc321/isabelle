@@ -17,7 +17,10 @@ optimizers and compiler!
 
 ### 3.1.1 Syntax
 
-Programming languages have both a concrete and an abstract syntax. Concrete syntax means strings. For example, "a + 5 * b" is an arithmetic expression given as a string. The concrete syntax of a language is usually defined
+Programming languages have both a concrete and an abstract
+syntax. Concrete syntax means strings. For example, "a + 5 * b" is an
+arithmetic expression given as a string. The concrete syntax of a
+language is usually defined
 by a context-free grammar. The expression "a + 5 * b" can also be viewed
 as the following tree:
 
@@ -49,14 +52,16 @@ name. Isabelle strings require two single quotes on both ends, for example
 ``` ''abc'' ```. The intended meaning of the three constructors is as follows: N represents numbers, i.e., constants, V represents variables, and Plus represents
 addition. The following examples illustrate the intended correspondence:
 
-- [ ] todo fix me table org mode 
-
-|Concrete | Abstract|
----------------------
-| 5 | N 5|
-| x | V ''x'' |
-| x+ y | Plus (V ''x'') (V ''y'') |
-|2 + (z + 3) | Plus (N 2) (Plus (V ''z'') (N 3)) |
+```
+---------------------------------------------------
+| Concrete    | Abstract                          |
+|-------------|-----------------------------------|
+| 5           | N 5                               |
+| x           | V ''x''                           |
+| x+ y        | Plus (V ''x'') (V ''y'')          |
+| 2 + (z + 3) | Plus (N 2) (Plus (V ''z'') (N 3)) |
+--------------------------------------------------
+```
 
 It is important to understand that so far we have only defined syntax, not
 semantics! Although the binary operation is called Plus, this is merely a
