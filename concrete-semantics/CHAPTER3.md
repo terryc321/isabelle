@@ -155,10 +155,10 @@ Function asimp_const performs constant folding in a bottom-up manner:
 fun asimp_const :: "aexp ⇒ aexp" where
 "asimp_const (N n) = N n" 
 | "asimp_const (V x ) = V x" 
-| "asimp_const (Plus a 1 a 2 ) =
-(case (asimp_const a 1, asimp_const a 2 ) of
- (N n 1 , N n 2 ) ⇒ N (n 1 +n 2 ) |
- (b 1,b 2 ) ⇒ Plus b 1 b 2 )"
+| "asimp_const (Plus a1 a2 ) =
+(case (asimp_const a1, asimp_const a2 ) of
+ (N n1 , N n2 ) ⇒ N (n1 + n 2 ) |
+ (b1,b2 ) ⇒ Plus b1 b2 )"
 ```
 
 Neither N nor V can be simplified further. Given a Plus, first the two subexpressions are simplified. If both become numbers, they are added. In all other
@@ -204,7 +204,7 @@ aexp ⇒ state ⇒ val; the return type has to be more complicated.
 ```
 (* older tactic proof *)
 lemma asimp_const1 : "aval (asimp_const v) s = aval v s"
-  by (induction v rule: asimp_const.induct , simp_all, auto split: aexp.split)
+  by (induction v, auto split: aexp.split)
 
 (* modern isar proof *)
 lemma asimp_const2 : "aval (asimp_const v) s = aval v s"
@@ -215,7 +215,8 @@ next
   case (V x)
   then show ?case by simp
 next
-  case (Plus v1 v2) (* this is the juicy case *)
+  (* this is the juicy part *)
+  case (Plus v1 v2) 
   then show ?case by (auto split: aexp.splits)
 qed
 
@@ -237,8 +238,6 @@ aval (asimp_const (Plus a 1 a 2 )) s
 = aval (asimp_const a 1 ) s + aval (asimp_const a 2 ) s
 = aval (Plus a 1 a 2 ) s.
 ```
-
-
 
 This is rather a long proof for such a simple lemma, and boring to boot. In
 the future we shall refrain from going through such proofs in such excessive
