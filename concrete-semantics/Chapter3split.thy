@@ -1,7 +1,7 @@
 
 (* Chapter3.thy *)
 
-theory Chapter3
+theory Chapter3split
   imports Main
 begin
 
@@ -32,20 +32,6 @@ fun asimp_const :: "aexp \<Rightarrow> aexp" where
 
 lemma asimp_const1 : "aval (asimp_const v) s = aval v s"
   by (induction v rule: asimp_const.induct , simp_all, auto split: aexp.split)
-
-lemma asimp_cons2 : "aval (asimp_const v) s = aval v s"
-proof (induction v)
-  case (N x)
-  then show ?case sorry
-next
-  case (V x)
-  then show ?case sorry
-next
-  case (Plus v1 v2)
-  then show ?case sorry
-qed
-
-
 
 (* an optimized version of plus - well , it recognises something plus zero is something*)
 fun plus :: "aexp \<Rightarrow> aexp \<Rightarrow> aexp" where
@@ -81,20 +67,33 @@ right hand side of optimal (Plus a1 a2) = if a1 = (N i) & a2 = (N j) then False 
 so we wrote bothNumbers hopefully get us over this hurdle
 *)
 fun bothNumbers :: "aexp \<Rightarrow> aexp \<Rightarrow> bool" where 
-"bothNumbers (N _)(N _) = True"
+"bothNumbers (N i)(N j) = True"
 | "bothNumbers _ _ = False" 
 
+(* can we solve it using a case split ? *)
 fun optimal :: "aexp \<Rightarrow> bool" where
 "optimal (N n)  = True" |
 "optimal (V x ) = True" |
-"optimal (Plus a1 a2) = (if bothNumbers a1 a2 then False 
-                       else (optimal a1) & (optimal a2))"
+"optimal (Plus a1 a2) = (case (a1,a2) of 
+           ((N i),(N j)) \<Rightarrow> False
+         | _ \<Rightarrow> (optimal a1) & (optimal a2))"
 
 (* & and \<and> seem to be logically equivalent *)
 lemma and1 : " (P & Q) = (P \<and> Q) "
   by simp
-  
 
+(** using case split does seem to do anything 
+
+  proof -
+    apply (unfold asimp_const.simps(3))
+**)
+
+thm asimp_const.simps
+(*
+nope 
+thm my_optimal_def
+thm my_asimp_const_def
+*)
 lemma "optimal (asimp_const a)"
 proof(induction a)
   case (N x)
@@ -103,61 +102,9 @@ next
   case (V x)
   then show ?case by simp
 next
-  case (Plus a1 a2)
-  then show ?case by (auto split: aexp.splits) 
+  case (Plus a1 a2)  
+  then show ?case by simp  (* this fails - we simply dont know how to do case split?*)
 qed
-
-
-(* 
-Exercise 3.2. In this exercise we verify constant folding for aexp where we
-sum up all constants, even if they are not next to each other. 
-For example, Plus (N 1) (Plus (V x ) (N 2)) becomes Plus (V x ) (N 3). 
-This goes beyond asimp.
-Define a function full_asimp :: aexp \<Rightarrow> aexp that sums up all constants and
-prove its correctness: aval (full_asimp a) s = aval a s.
-*)
-
-(* has constants (N i) *)
-fun hasN :: "aexp \<Rightarrow> bool" where
-"hasN (N _) = True"
-| "hasN (V _) = False" 
-| "hasN (Plus a b) = (hasN a \<or> hasN b)" 
-
-fun totN :: "aexp \<Rightarrow> int" where 
-"totN (N i) = i"
-| "totN (V _) = 0"
-| "totN (Plus a b) = (totN a) + (totN b)"
-
-fun simpAdd :: "aexp \<Rightarrow> aexp \<Rightarrow> aexp" where
-"simpAdd (N i)(N j) = N (i+j)" 
-| "simpAdd _ _ = N 0" (* dummy case ? *)
-
-fun isNum :: "aexp \<Rightarrow> bool" where
-"isNum (N _) = True"
-| "isNum _ = False" 
-
-(* *)
-fun lowN :: "aexp \<Rightarrow> aexp" where
-"lowN (N i) = N i"
-| "lowN (V x) = V x"
-| "lowN (Plus a b) = (if isNum a then b else 
-                          (if isNum b then a
-                           else (let sa = lowN a ;
-                                     sb = lowN b in 
-                               Plus sa sb)))"
-
-value "lowN (N 3)"
-value "lowN (Plus (N 3)(N 4))"
-
-
-fun full_asimp :: "aexp \<Rightarrow> aexp" where
-"full_asimp (N n)  = N n" |
-"full_asimp (V x ) = V x" |
-"full_asimp (Plus a1 a2 ) = (let s1 = full_asimp a1 ; 
-                                 s2 = full_asimp a2 in
-                           if bothNumbers s1 s2 then simpAdd s1 s2
-                           else Plus s1 s2)"
-
 
 
 

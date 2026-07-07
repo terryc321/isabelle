@@ -33,20 +33,6 @@ fun asimp_const :: "aexp \<Rightarrow> aexp" where
 lemma asimp_const1 : "aval (asimp_const v) s = aval v s"
   by (induction v rule: asimp_const.induct , simp_all, auto split: aexp.split)
 
-lemma asimp_cons2 : "aval (asimp_const v) s = aval v s"
-proof (induction v)
-  case (N x)
-  then show ?case sorry
-next
-  case (V x)
-  then show ?case sorry
-next
-  case (Plus v1 v2)
-  then show ?case sorry
-qed
-
-
-
 (* an optimized version of plus - well , it recognises something plus zero is something*)
 fun plus :: "aexp \<Rightarrow> aexp \<Rightarrow> aexp" where
 "plus (N i1 ) (N i2 ) = N (i1 + i2 )" |
