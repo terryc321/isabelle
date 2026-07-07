@@ -153,8 +153,9 @@ Program optimization is a recurring theme of this book. We start with an
 extremely simple example, **constant folding**, i.e., the replacement of constant subexpressions by their value. It is performed routinely by compilers. 
 
 For example, the expression ```Plus (V x ) (Plus (N 3) (N 1))``` is simplified
-to ```Plus (V ''x'') (N 4)```. Function asimp_const performs constant folding
-in a bottom-up manner:
+to ```Plus (V ''x'') (N 4)```. 
+
+Function asimp_const performs constant folding in a bottom-up manner:
 
 ```
 fun asimp_const :: "aexp ⇒ aexp" where
