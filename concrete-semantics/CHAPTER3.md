@@ -198,9 +198,11 @@ lemma "aval (asimp_const a) s = aval a s"
 ```
 
 The proof is by induction on a. The two base cases N and V are trivial. In
-the Plus a 1 a 2 case, the induction hypotheses are aval (asimp_const a i) s
-= aval a i s for i =1,2. If asimp_const a i = N n i for i =1,2, then
-aval (asimp_const (Plus a 1 a 2 )) s
+the Plus a1 a2 case, the induction hypotheses are 
+```
+aval (asimp_const ai) s = aval a i s for i =1,2. 
+
+If asimp_const a i = N n i for i =1,2, then aval (asimp_const (Plus a 1 a 2 )) s
 = aval (N (n 1 +n 2)) s = n 1+n 2
 = aval (asimp_const a 1 ) s + aval (asimp_const a 2 ) s
 = aval (Plus a 1 a 2 ) s.
@@ -209,7 +211,7 @@ aval (asimp_const (Plus a 1 a 2 )) s
 = aval (Plus (asimp_const a 1 ) (asimp_const a 2 )) s
 = aval (asimp_const a 1 ) s + aval (asimp_const a 2 ) s
 = aval (Plus a 1 a 2 ) s.
-
+```
 
 This is rather a long proof for such a simple lemma, and boring to boot. In
 the future we shall refrain from going through such proofs in such excessive
@@ -270,6 +272,9 @@ lemma "aval (asimp a) s = aval a s"
 
 The proof is by structural induction on a; the Plus case follows with the help
 of Lemma aval_plus.
+
+- [ ] todo - check proofs work so far in isabelle hol 
+
 
 ## Exercises
 
