@@ -115,6 +115,31 @@ following more compact notation
 ```
 which works for any number of variables, even for none: <> is syntactic sugar
 for (λx . 0).
+
+todo - replace \x with lambda 
+todo - get emacs to recognise \lambda and convert it ?
+```
+<> means \x . 0 
+```
+
+### 3.1.2.b Examples of colon equals syntax
+
+```
+value "(λ x . 0 :: int) ''z''"
+value "(λ x . 0 :: int) 4"
+value "((λ x . 0) (''x'' := 4 )) ''x'' :: int"
+value "((λ x . 0) (''x'' := 1 , ''y'' := 2)) ''x'' :: int" (* ⟹ 1 :: int *)
+value "((λ x . 0) (''x'' := 1 , ''y'' := 2)) ''y'' :: int" (* ⟹ 2 :: int *)
+value "((λ x . 0) (''x'' := 1 , ''y'' := 2)) ''z'' :: int" (* ⟹ 0 :: int *)
+
+lemma "(((λ x . 0) (''x'' := 1 , ''y'' := 2)) ''x'') = 1" 
+  by simp
+lemma "(((λ x . 0) (''x'' := 1 , ''y'' := 2)) ''y'') = 2" 
+  by simp
+lemma "(((λ x . 0) (''x'' := 1 , ''y'' := 2)) ''z'') = 0" 
+  by simp
+```
+
 It would be easy to add subtraction and multiplication to *aexp* and extend
 *aval* accordingly. However, not all operators are as well behaved: division by
 zero raises an exception and C’s ++ changes the state. Neither exceptions nor
